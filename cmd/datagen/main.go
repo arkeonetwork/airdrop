@@ -10,11 +10,11 @@ import (
 
 type Config struct {
 	EthRPC           string `mapstructure:"ETH_RPC"`
-	FoxGenesisBlock  int    `mapstructure:"FOX_GENESIS_BLOCK"`
+	FoxGenesisBlock  uint64 `mapstructure:"FOX_GENESIS_BLOCK"`
 	FoxAddressEth    string `mapstructure:"FOX_ADDRESS_ETH"`
 	FoxAddressGnosis string `mapstructure:"FOX_ADDRESS_GNOSIS"`
-	SnapshotStart    int    `mapstructure:"SNAPSHOT_START"`
-	SnapshotEnd      int    `mapstructure:"SNAPSHOT_END"`
+	SnapshotStart    uint64 `mapstructure:"SNAPSHOT_START"`
+	SnapshotEnd      uint64 `mapstructure:"SNAPSHOT_END"`
 }
 
 var (

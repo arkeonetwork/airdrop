@@ -5,18 +5,18 @@ import (
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
 	erc20 "github.com/ArkeoNetwork/merkle-drop/contracts"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ArkeoNetwork/merkle-drop/pkg/token_utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type AppParams struct {
 	EthRPC           string
-	FoxGenesisBlock  int
+	FoxGenesisBlock  uint64
 	FoxAddressEth    string
 	FoxAddressGnosis string
-	SnapshotStart    int
-	SnapshotEnd      int
+	SnapshotStart    uint64
+	SnapshotEnd      uint64
 }
 
 type App struct {
@@ -43,24 +43,12 @@ func NewApp(params AppParams) *App {
 	if err != nil {
 		log.Errorf("failed to create fox %+v", err)
 	}
-	snapshotEnd := uint64(params.FoxGenesisBlock + 1500000)
-	//snapshotEnd := uint64(params.SnapshotEnd)
-
-	filterOpts := bind.FilterOpts{
-		Start:   uint64(params.FoxGenesisBlock),
-		End:     &snapshotEnd,
-		Context: context.Background(),
-	}
-	iter, err := fox.FilterTransfer(&filterOpts, nil, nil)
-
-	//logs, err := client.FilterLogs(context.Background(), query)
+	holders, err := token_utils.GetAllHolders(params.FoxGenesisBlock, blockNumber, 10000, fox)
 	if err != nil {
-		log.Errorf("failed to get logs from eth RPC client %+v", err)
+		log.Errorf("failed to get holders of fox %+v", err)
 	}
 
-	for iter.Next() {
-		log.Info(iter.Event.From, iter.Event.To)
-	}
+	log.Info(holders)
 
 	return &App{params: params, ethMainnetClient: client}
 }
