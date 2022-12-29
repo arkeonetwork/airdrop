@@ -5,12 +5,16 @@ import (
 
 	"github.com/ArkeoNetwork/directory/pkg/config"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
+	"github.com/ArkeoNetwork/merkle-drop/datagen"
 )
 
 type Config struct {
 	EthRPC           string `mapstructure:"ETH_RPC"`
+	FoxGenesisBlock  int    `mapstructure:"FOX_GENESIS_BLOCK"`
 	FoxAddressEth    string `mapstructure:"FOX_ADDRESS_ETH"`
 	FoxAddressGnosis string `mapstructure:"FOX_ADDRESS_GNOSIS"`
+	SnapshotStart    int    `mapstructure:"SNAPSHOT_START"`
+	SnapshotEnd      int    `mapstructure:"SNAPSHOT_END"`
 }
 
 var (
@@ -18,8 +22,11 @@ var (
 	envPath     = flag.String("env", "", "path to env file (default: use os env)")
 	configNames = []string{
 		"ETH_RPC",
+		"FOX_GENESIS_BLOCK",
 		"FOX_ADDRESS_ETH",
 		"FOX_ADDRESS_GNOSIS",
+		"SNAPSHOT_START",
+		"SNAPSHOT_END",
 	}
 )
 
@@ -36,4 +43,13 @@ func main() {
 			log.Panicf("failed to load config: %+v", err)
 		}
 	}
+
+	datagen.NewApp(datagen.AppParams{
+		EthRPC:           c.EthRPC,
+		FoxGenesisBlock:  c.FoxGenesisBlock,
+		FoxAddressEth:    c.FoxAddressEth,
+		FoxAddressGnosis: c.FoxAddressGnosis,
+		SnapshotStart:    c.SnapshotStart,
+		SnapshotEnd:      c.SnapshotEnd,
+	})
 }
