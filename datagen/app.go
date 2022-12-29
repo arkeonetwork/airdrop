@@ -2,10 +2,10 @@ package datagen
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
-	ethereum "github.com/ethereum/go-ethereum"
+	erc20 "github.com/ArkeoNetwork/merkle-drop/contracts"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -37,26 +37,30 @@ func NewApp(params AppParams) *App {
 	}
 
 	log.Infof("Connected to eth mainnet client. Current block %d", blockNumber)
-
-	// query := ethereum.FilterQuery{
-	// 	FromBlock: big.NewInt(2394201),
-	// 	ToBlock:   big.NewInt(2394201),
-	// 	Addresses: []common.Address{
-	// 	  contractAddress,
-	// 	},
-	//   }
-
 	foxAddress := common.HexToAddress(params.FoxAddressEth)
-	query := ethereum.FilterQuery{
-		FromBlock: big.NewInt(int64(params.FoxGenesisBlock)),
-		ToBlock:   big.NewInt(int64(params.SnapshotEnd)),
-		Addresses: []common.Address{
-			foxAddress,
-		},
+
+	fox, err := erc20.NewErc20(foxAddress, client)
+	if err != nil {
+		log.Errorf("failed to create fox %+v", err)
+	}
+	snapshotEnd := uint64(params.FoxGenesisBlock + 1500000)
+	//snapshotEnd := uint64(params.SnapshotEnd)
+
+	filterOpts := bind.FilterOpts{
+		Start:   uint64(params.FoxGenesisBlock),
+		End:     &snapshotEnd,
+		Context: context.Background(),
+	}
+	iter, err := fox.FilterTransfer(&filterOpts, nil, nil)
+
+	//logs, err := client.FilterLogs(context.Background(), query)
+	if err != nil {
+		log.Errorf("failed to get logs from eth RPC client %+v", err)
 	}
 
-	client.FilterLogs(context.Background(), query)
-	// we should now be able to get all the holders of FOX that could potentially have a balance during the airdrop
+	for iter.Next() {
+		log.Info(iter.Event.From, iter.Event.To)
+	}
 
 	return &App{params: params, ethMainnetClient: client}
 }

@@ -1,1 +1,1 @@
-abigen --abi=./abis/ERC20.abi --pkg=contracts --out=./contracts/ERC20.go
+abigen --abi=./abis/ERC20.abi --pkg=erc20 --out=./contracts/erc20.go

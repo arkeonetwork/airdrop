@@ -9,6 +9,3 @@
 https://geth.ethereum.org/docs/getting-started/installing-geth#install-on-macos-via-homebrew
 https://goethereumbook.org/en/smart-contract-compile/
 
-```
-abigen --abi=./abis/ERC20.abi --pkg=contracts --out=./contracts/ERC20.go
-```
