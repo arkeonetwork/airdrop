@@ -43,12 +43,14 @@ func NewApp(params AppParams) *App {
 	if err != nil {
 		log.Errorf("failed to create fox %+v", err)
 	}
-	holders, err := token_utils.GetAllHolders(params.FoxGenesisBlock, blockNumber, 10000, fox)
+
+	transferEvents, err := token_utils.GetAllTransfers(params.FoxGenesisBlock, blockNumber, 1000, fox)
 	if err != nil {
-		log.Errorf("failed to get holders of fox %+v", err)
+		log.Panicf("failed to get holders of fox %+v", err)
 	}
 
-	log.Info(holders)
+	holders := token_utils.GetAllHolders(transferEvents)
+	log.Info(len(*holders))
 
 	return &App{params: params, ethMainnetClient: client}
 }
