@@ -9,3 +9,9 @@
 https://geth.ethereum.org/docs/getting-started/installing-geth#install-on-macos-via-homebrew
 https://goethereumbook.org/en/smart-contract-compile/
 
+
+# OOM
+GOMEMLIMIT may need to be set higher to run this depending on the lenght of the snapshot. 
+```
+export GOMEMLIMIT=16GiB
+```

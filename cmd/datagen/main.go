@@ -9,12 +9,14 @@ import (
 )
 
 type Config struct {
-	EthRPC           string `mapstructure:"ETH_RPC"`
-	FoxGenesisBlock  uint64 `mapstructure:"FOX_GENESIS_BLOCK"`
-	FoxAddressEth    string `mapstructure:"FOX_ADDRESS_ETH"`
-	FoxAddressGnosis string `mapstructure:"FOX_ADDRESS_GNOSIS"`
-	SnapshotStart    uint64 `mapstructure:"SNAPSHOT_START"`
-	SnapshotEnd      uint64 `mapstructure:"SNAPSHOT_END"`
+	EthRPC                string `mapstructure:"ETH_RPC"`
+	FoxGenesisBlock       uint64 `mapstructure:"FOX_GENESIS_BLOCK"`
+	FoxAddressEth         string `mapstructure:"FOX_ADDRESS_ETH"`
+	FoxAddressGnosis      string `mapstructure:"FOX_ADDRESS_GNOSIS"`
+	SnapshotStart         uint64 `mapstructure:"SNAPSHOT_START"`
+	SnapshotEnd           uint64 `mapstructure:"SNAPSHOT_END"`
+	SnapshotStartBlockEth uint64 `mapstructure:"SNAPSHOT_START_BLOCK_ETH"`
+	SnapshotEndBlockEth   uint64 `mapstructure:"SNAPSHOT_END_BLOCK_ETH"`
 }
 
 var (
@@ -27,6 +29,8 @@ var (
 		"FOX_ADDRESS_GNOSIS",
 		"SNAPSHOT_START",
 		"SNAPSHOT_END",
+		"SNAPSHOT_START_BLOCK_ETH",
+		"SNAPSHOT_END_BLOCK_ETH",
 	}
 )
 
@@ -45,11 +49,13 @@ func main() {
 	}
 
 	datagen.NewApp(datagen.AppParams{
-		EthRPC:           c.EthRPC,
-		FoxGenesisBlock:  c.FoxGenesisBlock,
-		FoxAddressEth:    c.FoxAddressEth,
-		FoxAddressGnosis: c.FoxAddressGnosis,
-		SnapshotStart:    c.SnapshotStart,
-		SnapshotEnd:      c.SnapshotEnd,
+		EthRPC:                c.EthRPC,
+		FoxGenesisBlock:       c.FoxGenesisBlock,
+		FoxAddressEth:         c.FoxAddressEth,
+		FoxAddressGnosis:      c.FoxAddressGnosis,
+		SnapshotStart:         c.SnapshotStart,
+		SnapshotEnd:           c.SnapshotEnd,
+		SnapshotStartBlockEth: c.SnapshotStartBlockEth,
+		SnapshotEndBlockEth:   c.SnapshotEndBlockEth,
 	})
 }

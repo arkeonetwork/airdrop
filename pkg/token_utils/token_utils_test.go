@@ -47,44 +47,97 @@ func TestGenerateBalanceHistory(t *testing.T) {
 	}
 
 	transfers := []*erc20.Erc20Transfer{&transferOne, &transferTwo, &transferThree}
-
-	balHistory := GenerateBalanceHistory(&allHolders, &transfers, uint64(startBlock), uint64(endBlock))
+	startingBalances := map[common.Address]*big.Int{addressA: big.NewInt(0), addressB: big.NewInt(0)}
+	balHistory := GenerateBalanceHistory(&allHolders, &transfers, &startingBalances, uint64(startBlock), uint64(endBlock))
 
 	addressAHistory := (*balHistory)[addressA]
 	addressBHistory := (*balHistory)[addressB]
 
-	if (*addressAHistory)[0] != 0 {
+	if (*addressAHistory)[0].Uint64() != 0 {
 		t.FailNow()
 	}
 
-	if (*addressBHistory)[0] != 0 {
+	if (*addressBHistory)[0].Uint64() != 0 {
 		t.FailNow()
 	}
 
-	if (*addressAHistory)[25] != 500 {
+	if (*addressAHistory)[25].Uint64() != 500 {
 		// we should have 500 on block 125
 		t.FailNow()
 	}
 
-	if (*addressBHistory)[25] != 0 {
+	if (*addressBHistory)[25].Uint64() != 0 {
 		t.FailNow()
 	}
 
-	if (*addressAHistory)[50] != 250 {
+	if (*addressAHistory)[50].Uint64() != 250 {
 		// we should have 250 on block 150
 		t.FailNow()
 	}
 
-	if (*addressBHistory)[50] != 250 {
+	if (*addressBHistory)[50].Uint64() != 250 {
 		// we should have 250 on block 150
 		t.FailNow()
 	}
 
-	if (*addressAHistory)[99] != 250 {
+	if (*addressAHistory)[99].Uint64() != 250 {
 		t.FailNow()
 	}
 
-	if (*addressBHistory)[99] != 0 {
+	if (*addressBHistory)[99].Uint64() != 0 {
+		t.FailNow()
+	}
+
+	// test with starting balances
+	startingBalances = map[common.Address]*big.Int{addressA: big.NewInt(100), addressB: big.NewInt(100)}
+	balHistory = GenerateBalanceHistory(&allHolders, &transfers, &startingBalances, uint64(startBlock), uint64(endBlock))
+
+	addressAHistory = (*balHistory)[addressA]
+	addressBHistory = (*balHistory)[addressB]
+
+	if (*addressAHistory)[0].Uint64() != 100 {
+		t.FailNow()
+	}
+
+	if (*addressBHistory)[0].Uint64() != 100 {
+		t.FailNow()
+	}
+
+	if (*addressAHistory)[25].Uint64() != 600 {
+		t.FailNow()
+	}
+
+	if (*addressBHistory)[25].Uint64() != 100 {
+		t.FailNow()
+	}
+
+	if (*addressAHistory)[50].Uint64() != 350 {
+		t.FailNow()
+	}
+
+	if (*addressBHistory)[50].Uint64() != 350 {
+		t.FailNow()
+	}
+
+	if (*addressAHistory)[99].Uint64() != 350 {
+		t.FailNow()
+	}
+
+	if (*addressBHistory)[99].Uint64() != 100 {
+		t.FailNow()
+	}
+}
+
+func TestGetAverageBalance(t *testing.T) {
+	balances := []*big.Int{big.NewInt(5), big.NewInt(5), big.NewInt(5)}
+	result := getAverageBalance(&balances)
+	if result.Uint64() != 5 {
+		t.FailNow()
+	}
+
+	balances = []*big.Int{big.NewInt(10), big.NewInt(5)}
+	result = getAverageBalance(&balances)
+	if result.Uint64() != 7 {
 		t.FailNow()
 	}
 

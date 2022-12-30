@@ -2,6 +2,9 @@ package datagen
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"os"
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
 	erc20 "github.com/ArkeoNetwork/merkle-drop/contracts"
@@ -11,12 +14,14 @@ import (
 )
 
 type AppParams struct {
-	EthRPC           string
-	FoxGenesisBlock  uint64
-	FoxAddressEth    string
-	FoxAddressGnosis string
-	SnapshotStart    uint64
-	SnapshotEnd      uint64
+	EthRPC                string
+	FoxGenesisBlock       uint64
+	FoxAddressEth         string
+	FoxAddressGnosis      string
+	SnapshotStart         uint64
+	SnapshotEnd           uint64
+	SnapshotStartBlockEth uint64
+	SnapshotEndBlockEth   uint64
 }
 
 type App struct {
@@ -44,13 +49,46 @@ func NewApp(params AppParams) *App {
 		log.Errorf("failed to create fox %+v", err)
 	}
 
-	transferEvents, err := token_utils.GetAllTransfers(params.FoxGenesisBlock, blockNumber, 1000, fox)
+	var transferEvents *[]*erc20.Erc20Transfer
+	// attemp to open jsonFile
+	transferJSONFile, err := os.Open("transer_events.json")
 	if err != nil {
-		log.Panicf("failed to get holders of fox %+v", err)
+		log.Info("Unable to find transfer events, will re-download")
+		transferEvents, err := token_utils.GetAllTransfers(params.FoxGenesisBlock, blockNumber, 1000, fox)
+		if err != nil {
+			log.Panicf("failed to get holders of fox %+v", err)
+		}
+
+		eventsJSON, err := json.MarshalIndent(transferEvents, "", "  ")
+		if err != nil {
+			log.Errorf("failed to json %+v", err)
+		}
+
+		err = ioutil.WriteFile("transer_events.json", eventsJSON, 0644)
+		if err != nil {
+			log.Errorf("failed to write file %+v", err)
+		}
+	} else {
+		defer transferJSONFile.Close()
+		transferJSON, err := ioutil.ReadAll(transferJSONFile)
+		if err != nil {
+			log.Panic("failed to read JSON")
+		} else {
+			var transferEventsFromFile []*erc20.Erc20Transfer
+			err := json.Unmarshal(transferJSON, &transferEventsFromFile)
+			if err != nil {
+				log.Panic("failed to unmarshal JSON")
+			} else {
+				transferEvents = &transferEventsFromFile
+			}
+		}
 	}
 
 	holders := token_utils.GetAllHolders(transferEvents)
-	log.Info(len(*holders))
-
+	startingBalances := token_utils.GetBalancesAtBlock(holders, transferEvents, params.SnapshotStartBlockEth)
+	balHistory := token_utils.GenerateBalanceHistory(holders, transferEvents, startingBalances, params.SnapshotStartBlockEth, params.SnapshotEndBlockEth)
+	weightedBalanceByAddress := token_utils.GetBlockWeigthedAverageBalance(balHistory)
+	weightedBalanceByAddressJSON, _ := json.MarshalIndent(weightedBalanceByAddress, "", "  ")
+	ioutil.WriteFile("weighted_balances.json", weightedBalanceByAddressJSON, 0644)
 	return &App{params: params, ethMainnetClient: client}
 }
