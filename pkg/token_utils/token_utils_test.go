@@ -47,8 +47,7 @@ func TestGenerateBalanceHistory(t *testing.T) {
 	}
 
 	transfers := []*erc20.Erc20Transfer{&transferOne, &transferTwo, &transferThree}
-	startingBalances := map[common.Address]*big.Int{addressA: big.NewInt(0), addressB: big.NewInt(0)}
-	balHistory := GenerateBalanceHistory(&allHolders, &transfers, &startingBalances, uint64(startBlock), uint64(endBlock))
+	balHistory := GenerateBalanceHistory(&allHolders, &transfers, uint64(startBlock), uint64(endBlock))
 
 	addressAHistory := (*balHistory)[addressA]
 	addressBHistory := (*balHistory)[addressB]
@@ -85,45 +84,6 @@ func TestGenerateBalanceHistory(t *testing.T) {
 	}
 
 	if (*addressBHistory)[99].Uint64() != 0 {
-		t.FailNow()
-	}
-
-	// test with starting balances
-	startingBalances = map[common.Address]*big.Int{addressA: big.NewInt(100), addressB: big.NewInt(100)}
-	balHistory = GenerateBalanceHistory(&allHolders, &transfers, &startingBalances, uint64(startBlock), uint64(endBlock))
-
-	addressAHistory = (*balHistory)[addressA]
-	addressBHistory = (*balHistory)[addressB]
-
-	if (*addressAHistory)[0].Uint64() != 100 {
-		t.FailNow()
-	}
-
-	if (*addressBHistory)[0].Uint64() != 100 {
-		t.FailNow()
-	}
-
-	if (*addressAHistory)[25].Uint64() != 600 {
-		t.FailNow()
-	}
-
-	if (*addressBHistory)[25].Uint64() != 100 {
-		t.FailNow()
-	}
-
-	if (*addressAHistory)[50].Uint64() != 350 {
-		t.FailNow()
-	}
-
-	if (*addressBHistory)[50].Uint64() != 350 {
-		t.FailNow()
-	}
-
-	if (*addressAHistory)[99].Uint64() != 350 {
-		t.FailNow()
-	}
-
-	if (*addressBHistory)[99].Uint64() != 100 {
 		t.FailNow()
 	}
 }

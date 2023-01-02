@@ -85,8 +85,7 @@ func NewApp(params AppParams) *App {
 	}
 
 	holders := token_utils.GetAllHolders(transferEvents)
-	startingBalances := token_utils.GetBalancesAtBlock(holders, transferEvents, params.SnapshotStartBlockEth)
-	balHistory := token_utils.GenerateBalanceHistory(holders, transferEvents, startingBalances, params.SnapshotStartBlockEth, params.SnapshotEndBlockEth)
+	balHistory := token_utils.GenerateBalanceHistory(holders, transferEvents, params.SnapshotStartBlockEth, params.SnapshotEndBlockEth)
 	weightedBalanceByAddress := token_utils.GetBlockWeigthedAverageBalance(balHistory)
 	weightedBalanceByAddressJSON, _ := json.MarshalIndent(weightedBalanceByAddress, "", "  ")
 	ioutil.WriteFile("weighted_balances.json", weightedBalanceByAddressJSON, 0644)
