@@ -9,14 +9,18 @@ import (
 )
 
 type Config struct {
-	EthRPC                string `mapstructure:"ETH_RPC"`
-	FoxGenesisBlock       uint64 `mapstructure:"FOX_GENESIS_BLOCK"`
-	FoxAddressEth         string `mapstructure:"FOX_ADDRESS_ETH"`
-	FoxAddressGnosis      string `mapstructure:"FOX_ADDRESS_GNOSIS"`
-	SnapshotStart         uint64 `mapstructure:"SNAPSHOT_START"`
-	SnapshotEnd           uint64 `mapstructure:"SNAPSHOT_END"`
-	SnapshotStartBlockEth uint64 `mapstructure:"SNAPSHOT_START_BLOCK_ETH"`
-	SnapshotEndBlockEth   uint64 `mapstructure:"SNAPSHOT_END_BLOCK_ETH"`
+	EthRPC                 string `mapstructure:"ETH_RPC"`
+	FoxGenesisBlock        uint64 `mapstructure:"FOX_GENESIS_BLOCK"`
+	FoxLPGenesisBlock      uint64 `mapstructure:"FOX_LP_GENESIS_BLOCK"`
+	FoxStakingGenesisBlock uint64 `mapstructure:"FOX_STAKING_GENESIS_BLOCK"`
+	FoxStakingAddressEth   string `mapstructure:"FOX_STAKING_ADDRESS_ETH"`
+	FoxAddressEth          string `mapstructure:"FOX_ADDRESS_ETH"`
+	FoxAddressGnosis       string `mapstructure:"FOX_ADDRESS_GNOSIS"`
+	FoxLPAddressEth        string `mapstructure:"FOX_LP_ADDRESS_ETH"`
+	SnapshotStart          uint64 `mapstructure:"SNAPSHOT_START"`
+	SnapshotEnd            uint64 `mapstructure:"SNAPSHOT_END"`
+	SnapshotStartBlockEth  uint64 `mapstructure:"SNAPSHOT_START_BLOCK_ETH"`
+	SnapshotEndBlockEth    uint64 `mapstructure:"SNAPSHOT_END_BLOCK_ETH"`
 }
 
 var (
@@ -25,8 +29,12 @@ var (
 	configNames = []string{
 		"ETH_RPC",
 		"FOX_GENESIS_BLOCK",
+		"FOX_LP_GENESIS_BLOCK",
 		"FOX_ADDRESS_ETH",
 		"FOX_ADDRESS_GNOSIS",
+		"FOX_LP_ADDRESS_ETH",
+		"FOX_STAKING_ADDRESS_ETH",
+		"FOX_STAKING_GENESIS_BLOCK",
 		"SNAPSHOT_START",
 		"SNAPSHOT_END",
 		"SNAPSHOT_START_BLOCK_ETH",
@@ -49,13 +57,17 @@ func main() {
 	}
 
 	datagen.NewApp(datagen.AppParams{
-		EthRPC:                c.EthRPC,
-		FoxGenesisBlock:       c.FoxGenesisBlock,
-		FoxAddressEth:         c.FoxAddressEth,
-		FoxAddressGnosis:      c.FoxAddressGnosis,
-		SnapshotStart:         c.SnapshotStart,
-		SnapshotEnd:           c.SnapshotEnd,
-		SnapshotStartBlockEth: c.SnapshotStartBlockEth,
-		SnapshotEndBlockEth:   c.SnapshotEndBlockEth,
+		EthRPC:                 c.EthRPC,
+		FoxGenesisBlock:        c.FoxGenesisBlock,
+		FoxLPGenesisBlock:      c.FoxLPGenesisBlock,
+		FoxAddressEth:          c.FoxAddressEth,
+		FoxAddressGnosis:       c.FoxAddressGnosis,
+		FoxLPAddressEth:        c.FoxLPAddressEth,
+		FoxStakingGenesisBlock: c.FoxStakingGenesisBlock,
+		FoxStakingAddressEth:   c.FoxStakingAddressEth,
+		SnapshotStart:          c.SnapshotStart,
+		SnapshotEnd:            c.SnapshotEnd,
+		SnapshotStartBlockEth:  c.SnapshotStartBlockEth,
+		SnapshotEndBlockEth:    c.SnapshotEndBlockEth,
 	})
 }

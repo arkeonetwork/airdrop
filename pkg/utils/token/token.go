@@ -1,4 +1,4 @@
-package token_utils
+package token
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
 
-	erc20 "github.com/ArkeoNetwork/merkle-drop/contracts"
+	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
