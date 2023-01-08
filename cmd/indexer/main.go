@@ -5,7 +5,7 @@ import (
 
 	"github.com/ArkeoNetwork/directory/pkg/config"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
-	"github.com/ArkeoNetwork/merkle-drop/datagen"
+	"github.com/ArkeoNetwork/merkle-drop/indexer"
 )
 
 type Config struct {
@@ -56,7 +56,7 @@ func main() {
 		}
 	}
 
-	datagen.NewApp(datagen.AppParams{
+	indexer.NewApp(indexer.AppParams{
 		EthRPC:                 c.EthRPC,
 		FoxGenesisBlock:        c.FoxGenesisBlock,
 		FoxLPGenesisBlock:      c.FoxLPGenesisBlock,

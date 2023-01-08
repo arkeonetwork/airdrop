@@ -6,3 +6,6 @@ run-data-gen: build
 
 generate-contracts:
 	@./scripts/contractGen.sh
+
+db-migrate:
+	tern migrate -c db/tern.conf -m db
