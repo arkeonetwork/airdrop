@@ -20,7 +20,7 @@ insert into tokens values ('0x470e8de2eBaef52014A47Cb5E6aF86884947F08c', 'UNI-V2
   -- tfox
 insert into tokens values ('0x808d3e6b23516967ceae4f17a5f9038383ed5311', 'TokemaktFOX', 'tFOX', 'ETH', 13690577, 0);
   -- scfox
-insert into tokens values ('0x04979ccCC2F854E167DAAd0AE095Da49eAE4842E', 'FOX $0.80 Success Token March 2024', 'tFOX', 'ETH', 13690577, 0);
+insert into tokens values ('0x04979ccCC2F854E167DAAd0AE095Da49eAE4842E', 'FOX $0.80 Success Token March 2024', 'scFOX0324', 'ETH', 14174869, 0);
 
 -- gnosis
   -- fox
