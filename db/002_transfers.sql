@@ -4,6 +4,8 @@ create table transfers
     id              bigserial not null
                         constraint transfers_pk
                             primary key,
+    created               timestamptz default now() not null,
+    updated               timestamptz default now() not null,
     txhash          text not null,
     token           text,
     transfer_from   text not null,
