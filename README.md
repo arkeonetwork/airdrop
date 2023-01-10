@@ -15,3 +15,9 @@ GOMEMLIMIT may need to be set higher to run this depending on the lenght of the 
 ```
 export GOMEMLIMIT=16GiB
 ```
+
+
+#### TODO:
+- Hedgeys
+- should we blacklist addresses that are inacessbile (FOXY, LP pool, etc? ) makes things more accurate, but also more complicated.
+- fix docker env issues
