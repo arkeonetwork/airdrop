@@ -5,9 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
 	"github.com/ArkeoNetwork/merkle-drop/pkg/db"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -38,7 +36,7 @@ var log = logging.WithoutFields()
 func NewIndexer(params IndexerAppParams) *IndexerApp {
 	client, err := ethclient.Dial(params.EthRPC)
 	if err != nil {
-		log.Panicf("failed to connet to eth RPC client %+v", err)
+		panic(fmt.Sprintf("failed to connet to eth RPC client %+v", err))
 	}
 	_, err = client.BlockNumber(context.Background())
 	if err != nil {
@@ -52,7 +50,7 @@ func NewIndexer(params IndexerAppParams) *IndexerApp {
 	return &IndexerApp{params: params, ethMainnetClient: client, db: d}
 }
 
-func (app *IndexerApp) start() {
+func (app *IndexerApp) Start() {
 	blockNumber, err := app.ethMainnetClient.BlockNumber(context.Background())
 	if err != nil {
 		panic(fmt.Sprintf("failed to get current block number from eth RPC client %+v", err))
@@ -84,14 +82,15 @@ func (app *IndexerApp) start() {
 
 		// iterate tokens array and get the transfers for each token
 		for _, token := range tokens {
-			tokenAddress := common.HexToAddress(token.Address)
-			erc20Token, err := erc20.NewErc20(tokenAddress, app.ethMainnetClient)
-			if err != nil {
-				log.Errorf("failed to create fox %+v", err)
+			// determine if the token has been synced to a differnt block
+			startBlock := token.GenesisBlock
+			if token.Height > startBlock {
+				startBlock = token.Height
 			}
 
 			// get the transfers for each token
-			err = app.IndexTransfers(app.params.SnapshotStartBlockEth, snapshotEndEth, 1000, erc20Token)
+			log.Infof("Getting transfers for token: %s from block: %d to block: %d", token.Name, app.params.SnapshotStartBlockEth, snapshotEndEth)
+			err = app.IndexTransfers(startBlock, snapshotEndEth, 1000, token.Address)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get transfers for token: %+v", err))
 			}

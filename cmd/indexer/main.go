@@ -73,7 +73,7 @@ func main() {
 		}
 	}
 
-	indexer.NewIndexer(indexer.IndexerAppParams{
+	indexerApp := indexer.NewIndexer(indexer.IndexerAppParams{
 		EthRPC:                 c.EthRPC,
 		FoxGenesisBlock:        c.FoxGenesisBlock,
 		FoxLPGenesisBlock:      c.FoxLPGenesisBlock,
@@ -97,4 +97,6 @@ func main() {
 			SSLMode:      c.DBSSLMode,
 		},
 	})
+	indexerApp.Start()
+	log.Debug("finished data generation process")
 }

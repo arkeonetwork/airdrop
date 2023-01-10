@@ -24,6 +24,7 @@ func (d *AirdropDB) FindTokensByChain(chain string) ([]*types.Token, error) {
 
 func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
 	conn, err := d.getConnection()
+	defer conn.Release()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error obtaining db connection")
 	}
@@ -38,6 +39,7 @@ func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
 // update token height
 func (d *AirdropDB) UpdateTokenHeight(tokenAddress string, height uint64) error {
 	conn, err := d.getConnection()
+	defer conn.Release()
 	if err != nil {
 		return errors.Wrapf(err, "error obtaining db connection")
 	}

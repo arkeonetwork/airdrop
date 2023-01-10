@@ -7,7 +7,7 @@ var (
 	on conflict on constraint transfers_txhash_log_index_unique
 	do update set updated = now()
 	where transfers.txhash = $1
-	  and provider_metadata.log_index = $2
+	  and transfers.log_index = $2
 	returning id, created, updated
 	`
 )
