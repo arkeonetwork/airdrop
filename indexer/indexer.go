@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
+	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
 	"github.com/ArkeoNetwork/merkle-drop/pkg/db"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -28,7 +30,7 @@ type IndexerAppParams struct {
 type IndexerApp struct {
 	params           IndexerAppParams
 	ethMainnetClient *ethclient.Client
-	db               *db.DirectoryDB
+	db               *db.AirdropDB
 }
 
 var log = logging.WithoutFields()
@@ -75,31 +77,23 @@ func (app *IndexerApp) start() {
 		}
 
 		// get the tokens for each chain
-		tokens, err := app.db.FindAllTokensForChain(chain)
+		tokens, err := app.db.FindTokensByChain(chain)
 		if err != nil {
 			panic(fmt.Sprintf("unbale to find tokens for chain: %+v", err))
 		}
 
 		// iterate tokens array and get the transfers for each token
 		for _, token := range tokens {
+			tokenAddress := common.HexToAddress(token.Address)
+			erc20Token, err := erc20.NewErc20(tokenAddress, app.ethMainnetClient)
+			if err != nil {
+				log.Errorf("failed to create fox %+v", err)
+			}
+
 			// get the transfers for each token
-			transferEvents, err := token_utils.GetAllTransfers(app.params.SnapshotStartBlockEth, snapshotEndEth, 10000, token)
+			err = app.IndexTransfers(app.params.SnapshotStartBlockEth, snapshotEndEth, 1000, erc20Token)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get transfers for token: %+v", err))
-			}
-			// get the holders for each token
-			holders := token_utils.GetAllHolders(transferEvents)
-			// iterate holders array and get the balances for each holder
-			for _, holder := range *holders {
-				balance, err := token.BalanceOf(nil, holder)
-				if err != nil {
-					panic(fmt.Sprintf("unbale to get balance for holder: %+v", err))
-				}
-				// save the balances for each holder
-				err = app.db.SaveBalance(chain, token, holder, balance)
-				if err != nil {
-					panic(fmt.Sprintf("unbale to save balance for holder: %+v", err))
-				}
 			}
 		}
 	}

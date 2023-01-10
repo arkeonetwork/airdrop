@@ -73,7 +73,7 @@ func main() {
 		}
 	}
 
-	indexer.NewApp(indexer.AppParams{
+	indexer.NewIndexer(indexer.IndexerAppParams{
 		EthRPC:                 c.EthRPC,
 		FoxGenesisBlock:        c.FoxGenesisBlock,
 		FoxLPGenesisBlock:      c.FoxLPGenesisBlock,

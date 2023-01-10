@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
-func (app *IndexerApp) indexTransfers(startBlock uint64, endBlock uint64, batchSize uint64, token *erc20.Erc20) error {
+func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchSize uint64, token *erc20.Erc20) error {
 	currentBlock := startBlock
 	retryCount := 20
 	for currentBlock < endBlock {
@@ -30,7 +30,7 @@ func (app *IndexerApp) indexTransfers(startBlock uint64, endBlock uint64, batchS
 			continue
 		}
 		for iter.Next() {
-
+			// todo: batch insert
 			_, err := app.db.InsertTransfer(types.Transfer{
 				From:         iter.Event.From.String(),
 				To:           iter.Event.To.String(),
@@ -39,6 +39,7 @@ func (app *IndexerApp) indexTransfers(startBlock uint64, endBlock uint64, batchS
 				TxHash:       iter.Event.Raw.TxHash.String(),
 				TokenAddress: iter.Event.Raw.Address.String(),
 			})
+
 			if err != nil {
 				log.Warnf("failed to insert transfer %+v", err)
 			}

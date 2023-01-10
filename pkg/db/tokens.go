@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (d *DirectoryDB) FindTokensByChain(chain string) ([]*types.Token, error) {
+func (d *AirdropDB) FindTokensByChain(chain string) ([]*types.Token, error) {
 	conn, err := d.getConnection()
 	defer conn.Release()
 	if err != nil {
@@ -22,7 +22,7 @@ func (d *DirectoryDB) FindTokensByChain(chain string) ([]*types.Token, error) {
 	return results, nil
 }
 
-func (d *DirectoryDB) FindAllChainsForTokens() ([]string, error) {
+func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
 	conn, err := d.getConnection()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error obtaining db connection")

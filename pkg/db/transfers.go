@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (d *DirectoryDB) InsertTransfer(tx types.Transfer) (*Entity, error) {
+func (d *AirdropDB) InsertTransfer(tx types.Transfer) (*Entity, error) {
 	conn, err := d.getConnection()
 	defer conn.Release()
 	if err != nil {

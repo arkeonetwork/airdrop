@@ -21,7 +21,7 @@ type DBConfig struct {
 	SSLMode      string
 }
 
-type DirectoryDB struct {
+type AirdropDB struct {
 	pool *pgxpool.Pool
 }
 
@@ -35,11 +35,11 @@ type Entity struct {
 var log = logging.WithoutFields()
 
 // obtain a db connection, callers must call conn.Release() when finished to return the conn to the pool
-func (d *DirectoryDB) getConnection() (*pgxpool.Conn, error) {
+func (d *AirdropDB) getConnection() (*pgxpool.Conn, error) {
 	return d.pool.Acquire(context.Background())
 }
 
-func New(config DBConfig) (*DirectoryDB, error) {
+func New(config DBConfig) (*AirdropDB, error) {
 	connStrTemplate := "postgres://%s:%s@%s:%d/%s?pool_max_conns=%d&pool_min_conns=%d&sslmode=%s"
 	url := fmt.Sprintf(connStrTemplate, config.User, config.Pass, config.Host, config.Port, config.DBName, config.PoolMaxConns, config.PoolMinConns, config.SSLMode)
 	poolConfig, err := pgxpool.ParseConfig(url)
@@ -53,5 +53,5 @@ func New(config DBConfig) (*DirectoryDB, error) {
 	}
 
 	log.Infof("connected pool for db %s on %s:%d", config.DBName, config.Host, config.Port)
-	return &DirectoryDB{pool}, nil
+	return &AirdropDB{pool}, nil
 }
