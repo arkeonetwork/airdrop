@@ -31,7 +31,7 @@ func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchS
 		}
 		for iter.Next() {
 			// todo: batch insert
-			_, err := app.db.InsertTransfer(types.Transfer{
+			_, err := app.db.UpsertTransfer(types.Transfer{
 				From:         iter.Event.From.String(),
 				To:           iter.Event.To.String(),
 				Value:        iter.Event.Value.String(),
@@ -45,6 +45,10 @@ func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchS
 			}
 		}
 		currentBlock = end
+		err = app.db.UpdateTokenHeight(iter.Event.Raw.Address.String(), currentBlock)
+		if err != nil {
+			log.Warnf("failed to update token height %+v", err)
+		}
 	}
 	return nil
 }

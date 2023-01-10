@@ -34,3 +34,17 @@ func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
 
 	return results, nil
 }
+
+// update token height
+func (d *AirdropDB) UpdateTokenHeight(tokenAddress string, height uint64) error {
+	conn, err := d.getConnection()
+	if err != nil {
+		return errors.Wrapf(err, "error obtaining db connection")
+	}
+	_, err = conn.Exec(context.Background(), sqlUpdateTokenHeight, height, tokenAddress)
+	if err != nil {
+		return errors.Wrapf(err, "error updating token height")
+	}
+
+	return nil
+}

@@ -11,6 +11,7 @@ type Token struct {
 
 type Transfer struct {
 	TxHash       string `db:"txHash"`
+	LogIndex     uint64 `db:"log_index"`
 	TokenAddress string `db:"token"`
 	From         string `db:"transfer_from"`
 	To           string `db:"transfer_to"`
