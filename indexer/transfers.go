@@ -3,11 +3,10 @@ package indexer
 import (
 	"context"
 	"errors"
-	"math"
-	"math/big"
 
 	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
 	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
+	"github.com/ArkeoNetwork/merkle-drop/pkg/utils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -47,13 +46,10 @@ func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchS
 			}
 			continue
 		}
-		// add each transfer to array
+
 		transfers := []*types.Transfer{}
 		for iter.Next() {
-			// todo: batch insert
-			transferValue := new(big.Float).SetInt(iter.Event.Value)
-			transferValue.Quo(transferValue, big.NewFloat(float64(math.Pow10(int(decimals)))))
-			transferValueDecimal, _ := transferValue.Float64()
+			transferValueDecimal := utils.BigIntToFloat(iter.Event.Value, decimals)
 			transfers = append(transfers,
 				&types.Transfer{
 					From:         iter.Event.From.String(),
