@@ -61,8 +61,22 @@ func TestBatchTransfer(t *testing.T) {
 	}
 
 	transfers := []*types.Transfer{&transfer1, &transfer2}
-	err = db.upsertTransferBatch(transfers)
+	err = db.UpsertTransferBatch(transfers)
 	if err != nil {
 		t.Errorf("error upserting transfer: %+v", err)
+	}
+}
+
+func TestGetBalanceAtBlock(t *testing.T) {
+	db, err := New(config)
+	if err != nil {
+		t.Errorf("error getting db: %+v", err)
+	}
+	bal, err := db.GetBalanceAtBlock("0xF152a54068c8eDDF5D537770985cA8c06ad78aBB", 16380085, "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d")
+	if err != nil {
+		t.Errorf("error getting balance: %+v", err)
+	}
+	if bal == 0 {
+		t.Errorf("balance should not be 0")
 	}
 }

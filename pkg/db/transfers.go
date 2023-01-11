@@ -17,6 +17,21 @@ func (d *AirdropDB) UpsertTransfer(tx types.Transfer) (*Entity, error) {
 	return upsert(conn, sqlUpsertTransferEvent, tx.TxHash, tx.LogIndex, tx.TokenAddress, tx.From, tx.To, tx.Value, tx.BlockNumber)
 }
 
+// function to get balance of address at block number
+func (d *AirdropDB) GetBalanceAtBlock(address string, blockNumber uint64, token string) (float64, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return 0, errors.Wrapf(err, "error obtaining db connection")
+	}
+	var balance float64
+	if err = selectOne(conn, sqlGetBalanceAtBlock, &balance, address, blockNumber, token); err != nil {
+		return 0, errors.Wrapf(err, "error selecting")
+	}
+
+	return balance, nil
+}
+
 func (d *AirdropDB) UpsertTransferBatch(transfers []*types.Transfer) error {
 	conn, err := d.getConnection()
 	defer conn.Release()

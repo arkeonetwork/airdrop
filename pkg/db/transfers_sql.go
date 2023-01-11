@@ -10,4 +10,6 @@ var (
 	  and transfers.log_index = $2
 	returning id, created, updated
 	`
+	sqlGetBalanceAtBlock = `select (select SUM(transfer_value) from transfers where transfer_to = $1 and block_number <= $2 and token = $3) - 
+	(select SUM(transfer_value) from transfers where transfer_from = $1 and block_number <= $2 and token = $3)`
 )
