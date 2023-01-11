@@ -56,7 +56,7 @@ func TestBatchTransfer(t *testing.T) {
 		TokenAddress: "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d",
 		From:         "0x123",
 		To:           "0x123",
-		Value:        51.55,
+		Value:        51.557777666688,
 		BlockNumber:  1,
 	}
 

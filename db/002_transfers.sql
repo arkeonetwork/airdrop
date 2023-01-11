@@ -11,7 +11,7 @@ create table transfers
     token           text,
     transfer_from   text not null,
     transfer_to     text not null,
-    transfer_value  bigint,
+    transfer_value  numeric not null check ( transfer_value >= 0 ),
     block_number    numeric not null check ( block_number >= 0 ),
     constraint tokens_fk 
         foreign key(token) 
