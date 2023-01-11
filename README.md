@@ -1,4 +1,4 @@
-# merkle-drop
+# airdrop
 
 
 1. Copy sample.env to .env and update node urls and needed end snapshot.
