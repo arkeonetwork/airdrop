@@ -19,3 +19,4 @@ export GOMEMLIMIT=16GiB
 - Hedgeys
 - should we blacklist addresses that are inacessbile (FOXY, LP pool, etc? ) makes things more accurate, but also more complicated.
 - fix docker env issues
+- figure out block heights!

@@ -12,10 +12,8 @@ import (
 )
 
 type IndexerAppParams struct {
-	SnapshotStart         uint64
-	SnapshotEnd           uint64
-	SnapshotStartBlockEth uint64
-	SnapshotEndBlockEth   uint64
+	SnapshotStart uint64
+	SnapshotEnd   uint64
 	db.DBConfig
 }
 
@@ -41,6 +39,7 @@ func (app *IndexerApp) Start() {
 		panic(fmt.Sprintf("unbale to find chains for tokens: %+v", err))
 	}
 
+	// todo: kick off new go-routine for each chain
 	for _, chain := range chains {
 		client, err := ethclient.Dial(chain.RpcUrl)
 		if err != nil {
@@ -53,9 +52,9 @@ func (app *IndexerApp) Start() {
 		}
 
 		log.Infof("Connected to client for %s. Current block %d", chain.Name, blockNumber)
-		snapshotEndEth := blockNumber
-		if blockNumber > app.params.SnapshotEndBlockEth {
-			snapshotEndEth = app.params.SnapshotEndBlockEth
+		snapshotEnd := blockNumber
+		if blockNumber > chain.SnapshotEndBlock {
+			snapshotEnd = chain.SnapshotEndBlock
 		}
 
 		// get the tokens for each chain
@@ -73,13 +72,13 @@ func (app *IndexerApp) Start() {
 			}
 
 			// get the transfers for each token
-			log.Infof("Getting transfers for token: %s from block: %d to block: %d", token.Name, app.params.SnapshotStartBlockEth, snapshotEndEth)
+			log.Infof("Getting transfers for token: %s from block: %d to block: %d", token.Name, startBlock, snapshotEnd)
 			tokenContract, err := erc20.NewErc20(common.HexToAddress(token.Address), client)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get token contract for token: %+v", err))
 			}
 
-			err = app.IndexTransfers(startBlock, snapshotEndEth, 1000, token.Address, tokenContract)
+			err = app.IndexTransfers(startBlock, snapshotEnd, 1000, token.Address, tokenContract)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get transfers for token: %+v", err))
 			}

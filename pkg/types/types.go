@@ -11,8 +11,10 @@ type Token struct {
 }
 
 type Chain struct {
-	Name   string `db:"name"`
-	RpcUrl string `db:"rpc_url"`
+	Name               string `db:"name"`
+	RpcUrl             string `db:"rpc_url"`
+	SnapshotStartBlock uint64 `db:"snapshot_start_block"`
+	SnapshotEndBlock   uint64 `db:"snapshot_end_block"`
 }
 
 type Transfer struct {

@@ -10,18 +10,16 @@ import (
 )
 
 type Config struct {
-	SnapshotStart         uint64 `mapstructure:"SNAPSHOT_START"`
-	SnapshotEnd           uint64 `mapstructure:"SNAPSHOT_END"`
-	SnapshotStartBlockEth uint64 `mapstructure:"SNAPSHOT_START_BLOCK_ETH"`
-	SnapshotEndBlockEth   uint64 `mapstructure:"SNAPSHOT_END_BLOCK_ETH"`
-	DBHost                string `mapstructure:"DB_HOST"`
-	DBPort                uint   `mapstructure:"DB_PORT"`
-	DBUser                string `mapstructure:"DB_USER"`
-	DBPass                string `mapstructure:"DB_PASS"`
-	DBName                string `mapstructure:"DB_NAME"`
-	DBSSLMode             string `mapstructure:"DB_SSL_MODE"`
-	DBPoolMaxConns        int    `mapstructure:"DB_POOL_MAX_CONNS"`
-	DBPoolMinConns        int    `mapstructure:"DB_POOL_MIN_CONNS"`
+	SnapshotStart  uint64 `mapstructure:"SNAPSHOT_START"`
+	SnapshotEnd    uint64 `mapstructure:"SNAPSHOT_END"`
+	DBHost         string `mapstructure:"DB_HOST"`
+	DBPort         uint   `mapstructure:"DB_PORT"`
+	DBUser         string `mapstructure:"DB_USER"`
+	DBPass         string `mapstructure:"DB_PASS"`
+	DBName         string `mapstructure:"DB_NAME"`
+	DBSSLMode      string `mapstructure:"DB_SSL_MODE"`
+	DBPoolMaxConns int    `mapstructure:"DB_POOL_MAX_CONNS"`
+	DBPoolMinConns int    `mapstructure:"DB_POOL_MIN_CONNS"`
 }
 
 var (
@@ -30,8 +28,6 @@ var (
 	configNames = []string{
 		"SNAPSHOT_START",
 		"SNAPSHOT_END",
-		"SNAPSHOT_START_BLOCK_ETH",
-		"SNAPSHOT_END_BLOCK_ETH",
 		"DB_HOST",
 		"DB_PORT",
 		"DB_USER",
@@ -58,10 +54,8 @@ func main() {
 	}
 
 	indexerApp := indexer.NewIndexer(indexer.IndexerAppParams{
-		SnapshotStart:         c.SnapshotStart,
-		SnapshotEnd:           c.SnapshotEnd,
-		SnapshotStartBlockEth: c.SnapshotStartBlockEth,
-		SnapshotEndBlockEth:   c.SnapshotEndBlockEth,
+		SnapshotStart: c.SnapshotStart,
+		SnapshotEnd:   c.SnapshotEnd,
 		DBConfig: db.DBConfig{
 			Host:         c.DBHost,
 			Port:         c.DBPort,
