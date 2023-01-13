@@ -26,3 +26,11 @@ type Transfer struct {
 	Value        float64 `db:"transfer_value"` // decimal version of transfer_value
 	BlockNumber  uint64  `db:"block_number"`
 }
+
+type Staking struct {
+	Address      string `db:"address"`
+	ContractName string `db:"contract_name"`
+	Chain        string `db:"chain"`
+	GenesisBlock uint64 `db:"genesis_block"`
+	Height       uint64 `db:"height"`
+}
