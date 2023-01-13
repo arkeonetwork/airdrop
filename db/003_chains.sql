@@ -17,8 +17,11 @@ insert into chains(name, rpc_url, snapshot_start_block, snapshot_end_block) valu
 ('POLY', 'https://polygon-mainnet.infura.io/v3/7e04619b10c04711b2cf8dea7a679ff4', 36005795, 38005795);
 
 ALTER TABLE tokens ADD CONSTRAINT chains_fk FOREIGN KEY (chain) REFERENCES chains(name);
+ALTER TABLE staking ADD CONSTRAINT chains_fk FOREIGN KEY (chain) REFERENCES chains(name);
+
 
 ---- create above / drop below ----
 -- undo --
 ALTER TABLE tokens DROP CONSTRAINT chains_fk;
+ALTER TABLE staking DROP CONSTRAINT chains_fk;
 drop table chains;
