@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// findStakingContracts
 func (d *AirdropDB) FindStakingContracts() ([]*types.StakingContract, error) {
 	conn, err := d.getConnection()
 	defer conn.Release()
@@ -23,7 +22,6 @@ func (d *AirdropDB) FindStakingContracts() ([]*types.StakingContract, error) {
 	return results, nil
 }
 
-// update staking contract height
 func (d *AirdropDB) UpdateStakingContractHeight(stakingContractAddress string, height uint64) error {
 	conn, err := d.getConnection()
 	defer conn.Release()

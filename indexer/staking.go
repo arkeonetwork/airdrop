@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// indexLPStaking indexes the LP staking events
 func (app *IndexerApp) IndexLPStaking() error {
 	// get all staking contracts
 	stakingContracts, err := app.db.FindStakingContracts()
@@ -52,7 +51,6 @@ func (app *IndexerApp) IndexLPStaking() error {
 			return errors.Wrap(err, "error getting staking token decimals")
 		}
 
-		// get current block number
 		startBlock := stakingContract.Height
 		if startBlock < stakingContract.GenesisBlock {
 			startBlock = stakingContract.GenesisBlock
@@ -67,7 +65,7 @@ func (app *IndexerApp) IndexLPStaking() error {
 			endBlock = blockNumber
 		}
 		log.Infof("Connected to client for %s. Current block %d Indexing staking events from block %d", chain.Name, blockNumber, startBlock)
-		err = app.indexStakingRewardsContractEvents(
+		err = app.indexStakingContractEvents(
 			startBlock,
 			endBlock,
 			1000,
@@ -82,7 +80,7 @@ func (app *IndexerApp) IndexLPStaking() error {
 	return nil
 }
 
-func (app *IndexerApp) indexStakingRewardsContractEvents(
+func (app *IndexerApp) indexStakingContractEvents(
 	startBlock uint64,
 	endBlock uint64,
 	batchSize uint64,
