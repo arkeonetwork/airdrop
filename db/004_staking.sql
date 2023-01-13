@@ -11,7 +11,7 @@ create table staking_events
     token           text not null,
     staking_contract text not null,
     staker          text not null,
-    stake_value    numeric not null check ( stake_value >= 0 ),
+    stake_value    numeric not null,
     block_number    numeric not null check ( block_number >= 0 ),
     constraint tokens_fk 
         foreign key(token) 

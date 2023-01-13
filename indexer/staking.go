@@ -97,12 +97,13 @@ func (app *IndexerApp) indexStakingContractEvents(
 			End:     &end,
 			Context: context.Background(),
 		}
+		// handle staked events
 		iter, err := stakingContract.FilterStaked(&filterOpts, nil)
 		if err != nil {
 			log.Errorf("failed to get staked events for block %+v retrying", err)
 			retryCount--
 			if retryCount < 0 {
-				return errors.New("indexStakingRewardsContractEvents failed with 0 retries")
+				return errors.New("indexStakingContractEvents failed with 0 retries")
 			}
 			continue
 		}
@@ -121,6 +122,32 @@ func (app *IndexerApp) indexStakingContractEvents(
 					Token:           stakingTokenAddress,
 				})
 		}
+
+		// handle unstaked events
+		iterWithdrawn, err := stakingContract.FilterWithdrawn(&filterOpts, nil)
+		if err != nil {
+			log.Errorf("failed to get staked events for block %+v retrying", err)
+			retryCount--
+			if retryCount < 0 {
+				return errors.New("indexStakingContractEvents failed with 0 retries")
+			}
+			continue
+		}
+
+		for iterWithdrawn.Next() {
+			stakingValueDecimal := utils.BigIntToFloat(iterWithdrawn.Event.Amount, stakingTokenDecimals) * -1 //negative value for unstaked
+			stakingEvents = append(stakingEvents,
+				&types.StakingEvent{
+					LogIndex:        iterWithdrawn.Event.Raw.Index,
+					Value:           stakingValueDecimal,
+					BlockNumber:     iterWithdrawn.Event.Raw.BlockNumber,
+					TxHash:          iterWithdrawn.Event.Raw.TxHash.String(),
+					StakingContract: stakingContractAddress,
+					Staker:          iterWithdrawn.Event.User.String(),
+					Token:           stakingTokenAddress,
+				})
+		}
+
 		err = app.db.UpdateStakingContractHeight(stakingContractAddress, end)
 		if err != nil {
 			log.Warnf("failed to update Staking Contract height %+v", err)
