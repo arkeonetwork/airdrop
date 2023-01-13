@@ -11,15 +11,10 @@ type Token struct {
 }
 
 type Chain struct {
-<<<<<<< HEAD
 	Name               string `db:"name"`
 	RpcUrl             string `db:"rpc_url"`
 	SnapshotStartBlock uint64 `db:"snapshot_start_block"`
 	SnapshotEndBlock   uint64 `db:"snapshot_end_block"`
-=======
-	Name   string `db:"name"`
-	RpcUrl string `db:"rpc_url"`
->>>>>>> f98d274 (adds multichain functionality)
 }
 
 type Transfer struct {
