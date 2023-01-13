@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 
+	"github.com/ArkeoNetwork/airdrop/indexer"
+	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/directory/pkg/config"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
-	"github.com/ArkeoNetwork/merkle-drop/indexer"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/db"
 )
 
 type Config struct {

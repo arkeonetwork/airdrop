@@ -1,4 +1,4 @@
-module github.com/ArkeoNetwork/merkle-drop
+module github.com/ArkeoNetwork/airdrop
 
 go 1.19
 

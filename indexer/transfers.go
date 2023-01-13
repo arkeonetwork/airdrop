@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/utils"
+	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
+	"github.com/ArkeoNetwork/airdrop/pkg/types"
+	"github.com/ArkeoNetwork/airdrop/pkg/utils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )

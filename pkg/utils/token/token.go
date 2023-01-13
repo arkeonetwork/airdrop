@@ -6,7 +6,7 @@ import (
 
 	"github.com/ArkeoNetwork/directory/pkg/logging"
 
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
+	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
 
 	"github.com/ethereum/go-ethereum/common"
 )

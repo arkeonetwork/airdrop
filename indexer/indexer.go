@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
+	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/db"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
