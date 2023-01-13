@@ -33,7 +33,7 @@ func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchS
 		}
 		iter, err := token.FilterTransfer(&filterOpts, nil, nil)
 		if err != nil {
-			log.Errorf("failed to get transfer events for block %+v retring", err)
+			log.Errorf("failed to get transfer events for block %+v retrying", err)
 			retryCount--
 			if retryCount < 0 {
 				return errors.New("GetAllTransfers failed with 0 retries")
