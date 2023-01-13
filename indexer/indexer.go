@@ -30,6 +30,7 @@ func NewIndexer(params IndexerAppParams) *IndexerApp {
 
 func (app *IndexerApp) Start() {
 	log.Info("starting indexing transfers")
+
 	err := app.IndexTransfers()
 	if err != nil {
 		panic(fmt.Sprintf("error indexing transfers: %+v", err))
@@ -41,5 +42,4 @@ func (app *IndexerApp) Start() {
 	if err != nil {
 		panic(fmt.Sprintf("error indexing LP staking: %+v", err))
 	}
-
 }
