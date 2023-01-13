@@ -21,3 +21,17 @@ func (d *AirdropDB) FindAllChains() ([]*types.Chain, error) {
 	}
 	return results, nil
 }
+
+// findchain - queries chains table for a chain
+func (d *AirdropDB) FindChain(chain string) (*types.Chain, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error obtaining db connection")
+	}
+	result := &types.Chain{}
+	if err = pgxscan.Get(context.Background(), conn, result, sqlFindChain, chain); err != nil {
+		return nil, errors.Wrapf(err, "error scanning")
+	}
+	return result, nil
+}
