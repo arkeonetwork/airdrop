@@ -10,6 +10,13 @@ type Token struct {
 	Height       uint64 `db:"height"`
 }
 
+type Chain struct {
+	Name               string `db:"name"`
+	RpcUrl             string `db:"rpc_url"`
+	SnapshotStartBlock uint64 `db:"snapshot_start_block"`
+	SnapshotEndBlock   uint64 `db:"snapshot_end_block"`
+}
+
 type Transfer struct {
 	TxHash       string  `db:"txHash"`
 	LogIndex     uint64  `db:"log_index"`

@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
+	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )

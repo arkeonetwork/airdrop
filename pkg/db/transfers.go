@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
+	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 )

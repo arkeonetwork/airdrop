@@ -4,20 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
-	"github.com/ArkeoNetwork/merkle-drop/pkg/utils"
+	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
+	"github.com/ArkeoNetwork/airdrop/pkg/types"
+	"github.com/ArkeoNetwork/airdrop/pkg/utils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 )
 
-func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchSize uint64, tokenAddress string) error {
-	token, err := erc20.NewErc20(common.HexToAddress(tokenAddress), app.ethMainnetClient)
-	if err != nil {
-		log.Errorf("failed to create token %+v", err)
-		return err
-	}
+func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchSize uint64, tokenAddress string, token *erc20.Erc20) error {
 	decimals, err := token.Decimals(nil)
 	if err != nil {
 		log.Errorf("failed to get token decimals %+v", err)
@@ -39,7 +33,7 @@ func (app *IndexerApp) IndexTransfers(startBlock uint64, endBlock uint64, batchS
 		}
 		iter, err := token.FilterTransfer(&filterOpts, nil, nil)
 		if err != nil {
-			log.Errorf("failed to get transfer events for block %+v retring", err)
+			log.Errorf("failed to get transfer events for block %+v retrying", err)
 			retryCount--
 			if retryCount < 0 {
 				return errors.New("GetAllTransfers failed with 0 retries")

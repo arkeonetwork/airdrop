@@ -3,7 +3,7 @@ package db
 import (
 	"testing"
 
-	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
+	"github.com/ArkeoNetwork/airdrop/pkg/types"
 )
 
 func TestUpsertTransfer(t *testing.T) {
