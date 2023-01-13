@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/jackc/pgx/v4"
@@ -25,7 +26,7 @@ func (d *AirdropDB) GetBalanceAtBlock(address string, blockNumber uint64, token 
 		return 0, errors.Wrapf(err, "error obtaining db connection")
 	}
 	var balance float64
-	if err = selectOne(conn, sqlGetBalanceAtBlock, &balance, address, blockNumber, token); err != nil {
+	if err = selectOne(conn, sqlGetBalanceAtBlock, &balance, strings.ToLower(address), blockNumber, token); err != nil {
 		return 0, errors.Wrapf(err, "error selecting")
 	}
 
@@ -49,9 +50,9 @@ func (d *AirdropDB) UpsertTransferBatch(transfers []*types.Transfer) error {
 			sqlUpsertTransferEvent,
 			transfer.TxHash,
 			transfer.LogIndex,
-			transfer.TokenAddress,
-			transfer.From,
-			transfer.To,
+			strings.ToLower(transfer.TokenAddress),
+			strings.ToLower(transfer.From),
+			strings.ToLower(transfer.To),
 			transfer.Value,
 			transfer.BlockNumber)
 	}
@@ -61,5 +62,4 @@ func (d *AirdropDB) UpsertTransferBatch(transfers []*types.Transfer) error {
 		return errors.Wrap(err, "error executing batch")
 	}
 	return nil
-
 }

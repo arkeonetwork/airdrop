@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/georgysavva/scany/pgxscan"
@@ -15,7 +16,7 @@ func (d *AirdropDB) FindTokensByChain(chain string) ([]*types.Token, error) {
 		return nil, errors.Wrapf(err, "error obtaining db connection")
 	}
 	results := make([]*types.Token, 0, 128)
-	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindTokensByChain, chain); err != nil {
+	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindTokensByChain, strings.ToUpper(chain)); err != nil {
 		return nil, errors.Wrapf(err, "error scanning")
 	}
 
@@ -43,7 +44,7 @@ func (d *AirdropDB) UpdateTokenHeight(tokenAddress string, height uint64) error 
 	if err != nil {
 		return errors.Wrapf(err, "error obtaining db connection")
 	}
-	_, err = conn.Exec(context.Background(), sqlUpdateTokenHeight, height, tokenAddress)
+	_, err = conn.Exec(context.Background(), sqlUpdateTokenHeight, height, strings.ToLower(tokenAddress))
 	if err != nil {
 		return errors.Wrapf(err, "error updating token height")
 	}

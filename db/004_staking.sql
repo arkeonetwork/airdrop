@@ -10,6 +10,7 @@ create table staking_events
     log_index       numeric not null check ( log_index >= 0 ),
     token           text not null,
     staking_contract text not null,
+    chain          text not null,
     staker          text not null,
     stake_value    numeric not null,
     block_number    numeric not null check ( block_number >= 0 ),
@@ -17,8 +18,8 @@ create table staking_events
         foreign key(token) 
             references tokens(address),
     constraint staking_contracts_fk
-        foreign key(staking_contract)
-            references staking_contracts(address),
+        foreign key(staking_contract, chain)
+            references staking_contracts(address, chain),
     constraint staking_events_txhash_log_index_unique
         unique (txhash, log_index)
 );

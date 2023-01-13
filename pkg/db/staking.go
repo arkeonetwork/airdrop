@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/georgysavva/scany/pgxscan"
@@ -28,7 +29,7 @@ func (d *AirdropDB) UpdateStakingContractHeight(stakingContractAddress string, h
 	if err != nil {
 		return errors.Wrapf(err, "error obtaining db connection")
 	}
-	_, err = conn.Exec(context.Background(), sqlUpdateStakingContractHeight, height, stakingContractAddress)
+	_, err = conn.Exec(context.Background(), sqlUpdateStakingContractHeight, height, strings.ToLower(stakingContractAddress))
 	if err != nil {
 		return errors.Wrapf(err, "error updating staking contract height")
 	}
@@ -53,9 +54,9 @@ func (d *AirdropDB) UpsertStakingEventBatch(stakingEvents []*types.StakingEvent)
 			sqlUpsertStakingEvent,
 			stakingEvent.TxHash,
 			stakingEvent.LogIndex,
-			stakingEvent.Token,
-			stakingEvent.StakingContract,
-			stakingEvent.Staker,
+			strings.ToLower(stakingEvent.Token),
+			strings.ToLower(stakingEvent.StakingContract),
+			strings.ToLower(stakingEvent.Staker),
 			stakingEvent.Value,
 			stakingEvent.BlockNumber)
 	}

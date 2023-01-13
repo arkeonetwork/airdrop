@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/georgysavva/scany/pgxscan"
@@ -30,7 +31,7 @@ func (d *AirdropDB) FindChain(chain string) (*types.Chain, error) {
 		return nil, errors.Wrapf(err, "error obtaining db connection")
 	}
 	result := &types.Chain{}
-	if err = pgxscan.Get(context.Background(), conn, result, sqlFindChain, chain); err != nil {
+	if err = pgxscan.Get(context.Background(), conn, result, sqlFindChain, strings.ToUpper(chain)); err != nil {
 		return nil, errors.Wrapf(err, "error scanning")
 	}
 	return result, nil

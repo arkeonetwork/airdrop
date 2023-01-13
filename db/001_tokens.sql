@@ -17,15 +17,15 @@ create table tokens
 
 -- mainnet 
   -- fox
-insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d', 'FOX', 'FOX', 18, 'ETH', 7446830, 0);
+insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0xc770eefad204b5180df6a14ee197d99d808ee52d', 'FOX', 'FOX', 18, 'ETH', 7446830, 0);
   -- foxy
-insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0xDc49108ce5C57bc3408c3A5E95F3d864eC386Ed3', 'FOX Yieldy', 'FOXy', 18, 'ETH', 14476930, 0);
+insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0xdc49108ce5c57bc3408c3a5e95f3d864ec386ed3', 'FOX Yieldy', 'FOXy', 18, 'ETH', 14476930, 0);
   -- fox <> ETH LP
-insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0x470e8de2eBaef52014A47Cb5E6aF86884947F08c', 'UNI-V2', 'Uniswap V2', 18, 'ETH', 10104463, 0);
+insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0x470e8de2ebaef52014a47cb5e6af86884947f08c', 'UNI-V2', 'Uniswap V2', 18, 'ETH', 10104463, 0);
   -- tfox
 insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0x808d3e6b23516967ceae4f17a5f9038383ed5311', 'TokemaktFOX', 'tFOX', 18, 'ETH', 13690577, 0);
   -- scfox
-insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0x04979ccCC2F854E167DAAd0AE095Da49eAE4842E', 'FOX $0.80 Success Token March 2024', 'scFOX0324', 18, 'ETH', 14174869, 0);
+insert into tokens(address, name, symbol, decimals, chain, genesis_block, height) values ('0x04979cccc2f854e167daad0ae095da49eae4842e', 'FOX $0.80 Success Token March 2024', 'scFOX0324', 18, 'ETH', 14174869, 0);
 
 -- gnosis
   -- fox
@@ -42,11 +42,13 @@ create table staking
             primary key,
     created               timestamptz default now() not null,
     updated               timestamptz default now() not null,
-    address text  not null unique,
+    address text  not null,
     contract_name   text   not null,
     chain    text   not null,
     genesis_block numeric check ( genesis_block >= 0 ),
-    height    numeric not null check ( height >= 0 )
+    height    numeric not null check ( height >= 0 ),
+    constraint address_chain_unique
+        unique (address, chain)
 );
 
 -- mainnet 
