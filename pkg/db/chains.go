@@ -3,7 +3,11 @@ package db
 import (
 	"context"
 
+<<<<<<< HEAD
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
+=======
+	"github.com/ArkeoNetwork/merkle-drop/pkg/types"
+>>>>>>> f98d274 (adds multichain functionality)
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/pkg/errors"
 )

@@ -7,13 +7,25 @@ import (
 	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
+<<<<<<< HEAD
+=======
+	"github.com/ArkeoNetwork/merkle-drop/contracts/erc20"
+	"github.com/ArkeoNetwork/merkle-drop/pkg/db"
+>>>>>>> f98d274 (adds multichain functionality)
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type IndexerAppParams struct {
+<<<<<<< HEAD
 	SnapshotStart uint64
 	SnapshotEnd   uint64
+=======
+	SnapshotStart         uint64
+	SnapshotEnd           uint64
+	SnapshotStartBlockEth uint64
+	SnapshotEndBlockEth   uint64
+>>>>>>> f98d274 (adds multichain functionality)
 	db.DBConfig
 }
 
@@ -52,9 +64,15 @@ func (app *IndexerApp) Start() {
 		}
 
 		log.Infof("Connected to client for %s. Current block %d", chain.Name, blockNumber)
+<<<<<<< HEAD
 		snapshotEnd := blockNumber
 		if blockNumber > chain.SnapshotEndBlock {
 			snapshotEnd = chain.SnapshotEndBlock
+=======
+		snapshotEndEth := blockNumber
+		if blockNumber > app.params.SnapshotEndBlockEth {
+			snapshotEndEth = app.params.SnapshotEndBlockEth
+>>>>>>> f98d274 (adds multichain functionality)
 		}
 
 		// get the tokens for each chain
@@ -72,13 +90,21 @@ func (app *IndexerApp) Start() {
 			}
 
 			// get the transfers for each token
+<<<<<<< HEAD
 			log.Infof("Getting transfers for token: %s from block: %d to block: %d", token.Name, startBlock, snapshotEnd)
+=======
+			log.Infof("Getting transfers for token: %s from block: %d to block: %d", token.Name, app.params.SnapshotStartBlockEth, snapshotEndEth)
+>>>>>>> f98d274 (adds multichain functionality)
 			tokenContract, err := erc20.NewErc20(common.HexToAddress(token.Address), client)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get token contract for token: %+v", err))
 			}
 
+<<<<<<< HEAD
 			err = app.IndexTransfers(startBlock, snapshotEnd, 1000, token.Address, tokenContract)
+=======
+			err = app.IndexTransfers(startBlock, snapshotEndEth, 1000, token.Address, tokenContract)
+>>>>>>> f98d274 (adds multichain functionality)
 			if err != nil {
 				panic(fmt.Sprintf("unbale to get transfers for token: %+v", err))
 			}
