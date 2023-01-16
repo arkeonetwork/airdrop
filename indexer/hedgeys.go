@@ -2,9 +2,10 @@ package indexer
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
-	"github.com/ArkeoNetwork/airdrop/contracts/stakingrewards"
+	"github.com/ArkeoNetwork/airdrop/contracts/hedgey"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/ArkeoNetwork/airdrop/pkg/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -13,11 +14,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (app *IndexerApp) IndexStakingRewardsEvents() error {
+func (app *IndexerApp) IndexHedgeyEvents() error {
 	// get all staking contracts
-	stakingContracts, err := app.db.FindStakingContractsByName("stakingrewards")
+	stakingContracts, err := app.db.FindStakingContractsByName("hedgeyNFT")
 	if err != nil {
-		return errors.Wrap(err, "error finding all staking contracts")
+		return errors.Wrap(err, "error finding all hedgeyNFT contracts")
 	}
 	// for each staking contract
 	for _, stakingContract := range stakingContracts {
@@ -31,22 +32,22 @@ func (app *IndexerApp) IndexStakingRewardsEvents() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to connect to eth RPC client %s", chain.RpcUrl)
 		}
-		// create staking contract
-		staking, err := stakingrewards.NewStakingrewards(common.HexToAddress(stakingContract.Address), client)
+		// create hedgey contract
+		hedgeyContract, err := hedgey.NewHedgey(common.HexToAddress(stakingContract.Address), client)
 		if err != nil {
-			return errors.Wrap(err, "error creating staking contract")
+			return errors.Wrap(err, "error creating hedgey contract")
 		}
 
 		// get the token address and determine decimals
-		stakingTokenAddress, err := staking.StakingToken(nil)
+		foxToken, err := app.db.FindTokenByChainAndSymbol(stakingContract.Chain, "FOX")
 		if err != nil {
-			return errors.Wrap(err, "error getting staking token address")
+			return errors.Wrap(err, "error getting FOX token address")
 		}
-		stakingToken, err := erc20.NewErc20(stakingTokenAddress, client)
+		stakingToken, err := erc20.NewErc20(common.HexToAddress(foxToken.Address), client)
 		if err != nil {
 			return errors.Wrap(err, "error creating staking token contract")
 		}
-		stakingTokenDecimals, err := stakingToken.Decimals(nil)
+		foxTokenDecimals, err := stakingToken.Decimals(nil)
 		if err != nil {
 			return errors.Wrap(err, "error getting staking token decimals")
 		}
@@ -64,32 +65,32 @@ func (app *IndexerApp) IndexStakingRewardsEvents() error {
 		if blockNumber < endBlock {
 			endBlock = blockNumber
 		}
-		log.Infof("Connected to client for %s. Current block %d Indexing staking events from block %d", chain.Name, blockNumber, startBlock)
-		err = app.indexStakingRewardContractEvents(
+		log.Infof("Connected to client for %s. Current block %d Indexing hedgey events from block %d", chain.Name, blockNumber, startBlock)
+		err = app.indexHedgeyContractEvents(
 			startBlock,
 			endBlock,
 			1000,
 			chain.Name,
-			stakingTokenDecimals,
-			stakingTokenAddress.String(),
+			foxTokenDecimals,
+			foxToken.Address,
 			stakingContract.Address,
-			staking)
+			hedgeyContract)
 		if err != nil {
-			return errors.Wrap(err, "error indexing staking contract events")
+			return errors.Wrap(err, "error indexing hedgey contract events")
 		}
 	}
 	return nil
 }
 
-func (app *IndexerApp) indexStakingRewardContractEvents(
+func (app *IndexerApp) indexHedgeyContractEvents(
 	startBlock uint64,
 	endBlock uint64,
 	batchSize uint64,
 	chain string,
-	stakingTokenDecimals uint8,
-	stakingTokenAddress string,
-	stakingContractAddress string,
-	stakingContract *stakingrewards.Stakingrewards) error {
+	foxTokenDecimals uint8,
+	foxTokenAddress string,
+	hedgeyContractAddress string,
+	hedgeyContract *hedgey.Hedgey) error {
 	currentBlock := startBlock
 	retryCount := 20
 	for currentBlock < endBlock {
@@ -100,34 +101,39 @@ func (app *IndexerApp) indexStakingRewardContractEvents(
 			Context: context.Background(),
 		}
 		// handle staked events
-		iter, err := stakingContract.FilterStaked(&filterOpts, nil)
+		iter, err := hedgeyContract.FilterNFTCreated(&filterOpts)
 		if err != nil {
 			log.Errorf("failed to get staked events for block %+v retrying", err)
 			retryCount--
 			if retryCount < 0 {
-				return errors.New("indexStakingContractEvents failed with 0 retries")
+				return errors.New("indexHedgeyContractEvents failed with 0 retries")
 			}
 			continue
 		}
 
 		stakingEvents := []*types.StakingEvent{}
 		for iter.Next() {
-			stakingValueDecimal := utils.BigIntToFloat(iter.Event.Amount, stakingTokenDecimals)
+			// confirm these are for the correct token
+			if strings.ToLower(iter.Event.Token.String()) != foxTokenAddress {
+				continue
+			}
+
+			stakingValueDecimal := utils.BigIntToFloat(iter.Event.Amount, foxTokenDecimals)
 			stakingEvents = append(stakingEvents,
 				&types.StakingEvent{
 					LogIndex:        iter.Event.Raw.Index,
 					Value:           stakingValueDecimal,
 					BlockNumber:     iter.Event.Raw.BlockNumber,
 					TxHash:          iter.Event.Raw.TxHash.String(),
-					StakingContract: stakingContractAddress,
-					Staker:          iter.Event.User.String(),
-					Token:           stakingTokenAddress,
+					StakingContract: hedgeyContractAddress,
+					Staker:          iter.Event.Holder.String(),
+					Token:           foxTokenAddress,
 					Chain:           chain,
 				})
 		}
 
 		// handle unstaked events
-		iterWithdrawn, err := stakingContract.FilterWithdrawn(&filterOpts, nil)
+		iterWithdrawn, err := hedgeyContract.FilterNFTRedeemed(&filterOpts)
 		if err != nil {
 			log.Errorf("failed to get staked events for block %+v retrying", err)
 			retryCount--
@@ -138,21 +144,25 @@ func (app *IndexerApp) indexStakingRewardContractEvents(
 		}
 
 		for iterWithdrawn.Next() {
-			stakingValueDecimal := utils.BigIntToFloat(iterWithdrawn.Event.Amount, stakingTokenDecimals) * -1 //negative value for unstaked
+			// confirm these are for the correct token
+			if strings.ToLower(iterWithdrawn.Event.Token.String()) != foxTokenAddress {
+				continue
+			}
+			stakingValueDecimal := utils.BigIntToFloat(iterWithdrawn.Event.Amount, foxTokenDecimals) * -1 //negative value for unstaked
 			stakingEvents = append(stakingEvents,
 				&types.StakingEvent{
 					LogIndex:        iterWithdrawn.Event.Raw.Index,
 					Value:           stakingValueDecimal,
 					BlockNumber:     iterWithdrawn.Event.Raw.BlockNumber,
 					TxHash:          iterWithdrawn.Event.Raw.TxHash.String(),
-					StakingContract: stakingContractAddress,
-					Staker:          iterWithdrawn.Event.User.String(),
-					Token:           stakingTokenAddress,
+					StakingContract: hedgeyContractAddress,
+					Staker:          iterWithdrawn.Event.Holder.String(),
+					Token:           foxTokenAddress,
 					Chain:           chain,
 				})
 		}
 
-		err = app.db.UpdateStakingContractHeight(stakingContractAddress, chain, end)
+		err = app.db.UpdateStakingContractHeight(hedgeyContractAddress, chain, end)
 		if err != nil {
 			log.Warnf("failed to update Staking Contract height %+v", err)
 		}
@@ -167,7 +177,7 @@ func (app *IndexerApp) indexStakingRewardContractEvents(
 			log.Errorf("failed to upsert staking event batch %+v", err)
 			return err
 		}
-		log.Debugf("Updated staking events for blocks through %d with %d events", end, len(stakingEvents))
+		log.Debugf("Updated hedgey events for blocks through %d with %d events", end, len(stakingEvents))
 	}
 	return nil
 }

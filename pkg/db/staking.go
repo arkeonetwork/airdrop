@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/georgysavva/scany/pgxscan"
@@ -22,13 +23,27 @@ func (d *AirdropDB) FindStakingContracts() ([]*types.StakingContract, error) {
 	return results, nil
 }
 
-func (d *AirdropDB) UpdateStakingContractHeight(stakingContractAddress string, height uint64) error {
+// find staking contracts by name
+func (d *AirdropDB) FindStakingContractsByName(name string) ([]*types.StakingContract, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error obtaining db connection")
+	}
+	results := make([]*types.StakingContract, 0, 128)
+	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindStakingContractsByName, name); err != nil {
+		return nil, errors.Wrapf(err, "error scanning")
+	}
+	return results, nil
+}
+
+func (d *AirdropDB) UpdateStakingContractHeight(stakingContractAddress string, chain string, height uint64) error {
 	conn, err := d.getConnection()
 	defer conn.Release()
 	if err != nil {
 		return errors.Wrapf(err, "error obtaining db connection")
 	}
-	_, err = conn.Exec(context.Background(), sqlUpdateStakingContractHeight, height, stakingContractAddress)
+	_, err = conn.Exec(context.Background(), sqlUpdateStakingContractHeight, height, strings.ToLower(stakingContractAddress), strings.ToUpper(chain))
 	if err != nil {
 		return errors.Wrapf(err, "error updating staking contract height")
 	}
@@ -53,11 +68,12 @@ func (d *AirdropDB) UpsertStakingEventBatch(stakingEvents []*types.StakingEvent)
 			sqlUpsertStakingEvent,
 			stakingEvent.TxHash,
 			stakingEvent.LogIndex,
-			stakingEvent.Token,
-			stakingEvent.StakingContract,
-			stakingEvent.Staker,
+			strings.ToLower(stakingEvent.Token),
+			strings.ToLower(stakingEvent.StakingContract),
+			strings.ToLower(stakingEvent.Staker),
 			stakingEvent.Value,
-			stakingEvent.BlockNumber)
+			stakingEvent.BlockNumber,
+			stakingEvent.Chain)
 	}
 	results := conn.SendBatch(context.Background(), batch)
 	err = results.Close()

@@ -43,4 +43,5 @@ type StakingEvent struct {
 	Staker          string  `db:"staker"`
 	Value           float64 `db:"stake_value"` // decimal version of value, can be negative for unstake
 	BlockNumber     uint64  `db:"block_number"`
+	Chain           string  `db:"chain"`
 }

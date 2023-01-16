@@ -38,8 +38,16 @@ func (app *IndexerApp) Start() {
 	log.Info("finished indexing transfers")
 	log.Info("starting indexing LP staking")
 
-	err = app.IndexLPStaking()
+	err = app.IndexStakingRewardsEvents()
 	if err != nil {
 		panic(fmt.Sprintf("error indexing LP staking: %+v", err))
 	}
+	log.Info("finished indexing LP staking")
+	log.Info("starting indexing hedgeys")
+
+	err = app.IndexHedgeyEvents()
+	if err != nil {
+		panic(fmt.Sprintf("error indexing hedgeys: %+v", err))
+	}
+
 }
