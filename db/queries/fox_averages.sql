@@ -1,5 +1,6 @@
 with averageable as (
-select cumulative_balance,
+select account,
+       cumulative_balance,
        block_number,
        blocks_between,
        blocks_between * lag(cumulative_balance, 1, 0) over (partition by account) as avg_over_blocks
@@ -11,14 +12,14 @@ from (select account,
       from (select account,
                    delta,
                    block_number
-            from my_transfers
+            from fox_transfers
             where block_number >= 16078485
               and block_number <= 16298368
             union -- starting balance
             (select account,
                     sum(delta),
                     16078485 as block_number
-             from my_transfers
+             from fox_transfers
              where block_number <= 16078485
              group by account
              order by block_number)
@@ -26,7 +27,7 @@ from (select account,
             (select account,
                     sum(delta),
                     16298368 as block_number
-             from my_transfers
+             from fox_transfers
              where block_number <= 16298368
              group by account
              order by block_number)) as ts
@@ -34,5 +35,8 @@ from (select account,
         and ts.block_number <= 16298368) as x
 order by block_number
 )
-select sum(avg_over_blocks) / (16298368 - 16078485)
-from averageable;
+select account, sum(avg_over_blocks) / (16298368 - 16078485) avg_hold
+from averageable
+group by account
+order by avg_hold desc
+;
