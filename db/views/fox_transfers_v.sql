@@ -1,4 +1,4 @@
-create or replace view fox_transfers as (
+create or replace view fox_transfers_v as (
     select id,txhash,transfer_to as account,transfer_value as delta, block_number
     from unique_fox_holders_v holders join transfers on holders.account = transfers.transfer_to
     where token = '0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d'

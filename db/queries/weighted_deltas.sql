@@ -10,14 +10,14 @@ from (select account,
       from (select account,
                    delta,
                    block_number
-            from my_transfers
+            from my_transfers_v
             where block_number >= 16078485
               and block_number <= 16298368
             union -- starting balance
             (select account,
                     sum(delta),
                     16078485 as block_number
-             from my_transfers
+             from my_transfers_v
              where block_number <= 16078485
              group by account
              order by block_number)
@@ -25,7 +25,7 @@ from (select account,
             (select account,
                     sum(delta),
                     16298368 as block_number
-             from my_transfers
+             from my_transfers_v
              where block_number <= 16298368
              group by account
              order by block_number)) as ts
