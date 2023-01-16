@@ -20,3 +20,4 @@ export GOMEMLIMIT=16GiB
 - should we blacklist addresses that are inacessbile (FOXY, LP pool, etc? ) makes things more accurate, but also more complicated.
 - fix docker env issues
 - figure out block heights!
+- test case - https://etherscan.io/tx/0xd325c50ccbf45be5b2985669c4ba8a1995547409f2e87ff828532a9956afe304 - do we see all these tranfers?

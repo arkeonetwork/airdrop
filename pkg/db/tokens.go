@@ -17,10 +17,24 @@ func (d *AirdropDB) FindTokensByChain(chain string) ([]*types.Token, error) {
 	}
 	results := make([]*types.Token, 0, 128)
 	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindTokensByChain, strings.ToUpper(chain)); err != nil {
-		return nil, errors.Wrapf(err, "error scanning")
+		return nil, errors.Wrapf(err, "error FindTokensByChain")
 	}
 
 	return results, nil
+}
+
+func (d *AirdropDB) FindTokenByChainAndSymbol(chain string, symbol string) (*types.Token, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error obtaining db connection")
+	}
+	result := &types.Token{}
+	if err = pgxscan.Get(context.Background(), conn, result, sqlFindTokenByChainAndSymbol, strings.ToUpper(chain), symbol); err != nil {
+		return nil, errors.Wrapf(err, "error FindTokenByChainAndSymbol")
+	}
+
+	return result, nil
 }
 
 func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
@@ -31,7 +45,7 @@ func (d *AirdropDB) FindAllChainsForTokens() ([]string, error) {
 	}
 	results := make([]string, 10)
 	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindAllChains); err != nil {
-		return nil, errors.Wrapf(err, "error scanning")
+		return nil, errors.Wrapf(err, "error FindAllChainsForTokens")
 	}
 
 	return results, nil

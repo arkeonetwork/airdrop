@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (app *IndexerApp) IndexLPStaking() error {
+func (app *IndexerApp) IndexStakingRewardsEvents() error {
 	// get all staking contracts
-	stakingContracts, err := app.db.FindStakingContracts()
+	stakingContracts, err := app.db.FindStakingContractsByName("stakingrewards")
 	if err != nil {
 		return errors.Wrap(err, "error finding all staking contracts")
 	}
@@ -65,10 +65,11 @@ func (app *IndexerApp) IndexLPStaking() error {
 			endBlock = blockNumber
 		}
 		log.Infof("Connected to client for %s. Current block %d Indexing staking events from block %d", chain.Name, blockNumber, startBlock)
-		err = app.indexStakingContractEvents(
+		err = app.indexStakingRewardContractEvents(
 			startBlock,
 			endBlock,
 			1000,
+			chain.Name,
 			stakingTokenDecimals,
 			stakingTokenAddress.String(),
 			stakingContract.Address,
@@ -80,10 +81,11 @@ func (app *IndexerApp) IndexLPStaking() error {
 	return nil
 }
 
-func (app *IndexerApp) indexStakingContractEvents(
+func (app *IndexerApp) indexStakingRewardContractEvents(
 	startBlock uint64,
 	endBlock uint64,
 	batchSize uint64,
+	chain string,
 	stakingTokenDecimals uint8,
 	stakingTokenAddress string,
 	stakingContractAddress string,
@@ -120,6 +122,7 @@ func (app *IndexerApp) indexStakingContractEvents(
 					StakingContract: stakingContractAddress,
 					Staker:          iter.Event.User.String(),
 					Token:           stakingTokenAddress,
+					Chain:           chain,
 				})
 		}
 
@@ -145,10 +148,11 @@ func (app *IndexerApp) indexStakingContractEvents(
 					StakingContract: stakingContractAddress,
 					Staker:          iterWithdrawn.Event.User.String(),
 					Token:           stakingTokenAddress,
+					Chain:           chain,
 				})
 		}
 
-		err = app.db.UpdateStakingContractHeight(stakingContractAddress, end)
+		err = app.db.UpdateStakingContractHeight(stakingContractAddress, chain, end)
 		if err != nil {
 			log.Warnf("failed to update Staking Contract height %+v", err)
 		}
