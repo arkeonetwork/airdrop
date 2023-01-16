@@ -109,6 +109,7 @@ func (app *IndexerApp) indexTransfersForToken(startBlock uint64, endBlock uint64
 					BlockNumber:  iter.Event.Raw.BlockNumber,
 					TxHash:       iter.Event.Raw.TxHash.String(),
 					TokenAddress: tokenAddress,
+					LogIndex:     uint64(iter.Event.Raw.Index),
 				})
 		}
 		err = app.db.UpdateTokenHeight(tokenAddress, end)
