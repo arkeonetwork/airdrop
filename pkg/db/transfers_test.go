@@ -16,7 +16,7 @@ func TestUpsertTransfer(t *testing.T) {
 	transfer := types.Transfer{
 		TxHash:       "0x123",
 		LogIndex:     1,
-		TokenAddress: "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d",
+		TokenAddress: "0xc770eefad204b5180df6a14ee197d99d808ee52d",
 		From:         "0x123",
 		To:           "0x123",
 		Value:        50.55,
@@ -43,7 +43,7 @@ func TestBatchTransfer(t *testing.T) {
 	transfer1 := types.Transfer{
 		TxHash:       "0x123",
 		LogIndex:     1,
-		TokenAddress: "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d",
+		TokenAddress: "0xc770eefad204b5180df6a14ee197d99d808ee52d",
 		From:         "0x123",
 		To:           "0x123",
 		Value:        50.55,
@@ -53,7 +53,7 @@ func TestBatchTransfer(t *testing.T) {
 	transfer2 := types.Transfer{
 		TxHash:       "0x123",
 		LogIndex:     2,
-		TokenAddress: "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d",
+		TokenAddress: "0xc770eefad204b5180df6a14ee197d99d808ee52d",
 		From:         "0x123",
 		To:           "0x123",
 		Value:        51.557777666688,
@@ -72,7 +72,7 @@ func TestGetBalanceAtBlock(t *testing.T) {
 	if err != nil {
 		t.Errorf("error getting db: %+v", err)
 	}
-	bal, err := db.GetBalanceAtBlock("0xF152a54068c8eDDF5D537770985cA8c06ad78aBB", 16380085, "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d")
+	bal, err := db.GetBalanceAtBlock("0xf152a54068c8eddf5d537770985ca8c06ad78abb", 16380085, "0xc770eefad204b5180df6a14ee197d99d808ee52d")
 	if err != nil {
 		t.Errorf("error getting balance: %+v", err)
 	}
