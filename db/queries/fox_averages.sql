@@ -1,4 +1,9 @@
-with averageable as (
+with params as (
+    select name, snapshot_start_block, snapshot_end_block
+    from chains
+    where name = 'ETH'
+),
+averageable as (
 select account,
        cumulative_balance,
        block_number,
@@ -13,29 +18,29 @@ from (select account,
                    delta,
                    block_number
             from fox_transfers_v
-            where block_number >= 16078485
-              and block_number <= 16298368
+            where block_number >= (select snapshot_start_block from params)
+              and block_number <= (select snapshot_end_block from params)
             union -- starting balance
             (select account,
                     sum(delta),
-                    16078485 as block_number
+                    (select snapshot_start_block from params) as block_number
              from fox_transfers_v
-             where block_number <= 16078485
+             where block_number <= (select snapshot_start_block from params)
              group by account
              order by block_number)
             union -- ending balance
             (select account,
                     sum(delta),
-                    16298368 as block_number
+                    (select snapshot_end_block from params) as block_number
              from fox_transfers_v
-             where block_number <= 16298368
+             where block_number <= (select snapshot_end_block from params)
              group by account
              order by block_number)) as ts
-      where ts.block_number >= 16078485
-        and ts.block_number <= 16298368) as x
+      where ts.block_number >= (select snapshot_start_block from params)
+        and ts.block_number <= (select snapshot_end_block from params)) as x
 order by block_number
 )
-select account, sum(avg_over_blocks) / (16298368 - 16078485) avg_hold
+select account, sum(avg_over_blocks) / ((select snapshot_end_block from params) - (select snapshot_start_block from params)) avg_hold
 from averageable
 group by account
 order by avg_hold desc
