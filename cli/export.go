@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	exportCmd.Flags().StringP("output", "f", "/tmp/arkeodrop.csv", "csv output file")
+	exportCmd.Flags().StringP("output", "f", "", "csv output file, default /tmp/airdrop_{chain}_{token}.csv")
 }
 
 func runExport(cmd *cobra.Command, args []string) {
@@ -35,6 +35,10 @@ func runExport(cmd *cobra.Command, args []string) {
 
 	flags = cmd.Flags()
 	fileName, _ := flags.GetString("output")
+	if fileName == "" {
+		fileName = fmt.Sprintf("/tmp/airdrop_%s_%s.csv", args[0], args[1])
+	}
+
 	params := db.DBConfig{
 		Host:         c.DBHost,
 		Port:         c.DBPort,
