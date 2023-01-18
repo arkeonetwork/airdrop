@@ -57,7 +57,7 @@ func exportWeightedTokenAvgs(dbConfig db.DBConfig, chain, token, fileName string
 	if err != nil {
 		return errors.Wrapf(err, "error connecting to the db")
 	}
-	log.Debug(d)
+
 	avgs, err := d.FindAveragedBalances(chain, token)
 	if err != nil {
 		return errors.Wrapf(err, "error finding averages")
@@ -69,7 +69,7 @@ func exportWeightedTokenAvgs(dbConfig db.DBConfig, chain, token, fileName string
 		fmt.Fprintf(&sb, "\"%s\",%.18f\n", a.Address, a.Holding)
 	}
 
-	if err = os.WriteFile(fileName, []byte(sb.String()), os.ModeAppend); err != nil {
+	if err = os.WriteFile(fileName, []byte(sb.String()), os.ModePerm); err != nil {
 		return errors.Wrapf(err, "error writing %s", fileName)
 	}
 	fmt.Printf("wrote %s", fileName)
