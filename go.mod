@@ -6,11 +6,13 @@ require (
 	github.com/ArkeoNetwork/directory v0.0.0-20221226175704-8f01136fa856
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/jackc/pgx/v4 v4.17.2
+	github.com/spf13/cobra v1.5.0
 )
 
 require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
