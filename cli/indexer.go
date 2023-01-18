@@ -3,7 +3,6 @@ package cli
 import (
 	"github.com/ArkeoNetwork/airdrop/indexer"
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
-	"github.com/ArkeoNetwork/directory/pkg/config"
 	"github.com/ArkeoNetwork/directory/pkg/logging"
 	"github.com/spf13/cobra"
 )
@@ -39,19 +38,9 @@ var (
 
 func runIndexer(cmd *cobra.Command, args []string) {
 	log.Info("starting data generation process")
-	// flag.Parse()
-	c := &Config{}
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")
-	if envPath == "" {
-		if err := config.LoadFromEnv(c, configNames...); err != nil {
-			log.Panicf("failed to load config from env: %+v", err)
-		}
-	} else {
-		if err := config.Load(envPath, c); err != nil {
-			log.Panicf("failed to load config: %+v", err)
-		}
-	}
+	c := readConfig(envPath)
 
 	indexerApp := indexer.NewIndexer(indexer.IndexerAppParams{
 		SnapshotStart: c.SnapshotStart,

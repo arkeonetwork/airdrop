@@ -1,3 +1,4 @@
+/* FOR TEST/TROUBLESHOOTING PURPOSES. See my_transfers_v */
 with params as (
     select name, snapshot_start_block, snapshot_end_block
     from chains

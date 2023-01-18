@@ -29,11 +29,10 @@ var (
 )
 
 func init() {
-	rootCmd.LocalFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
-	rootCmd.InheritedFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.PersistentFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(indexCmd)
+	rootCmd.AddCommand(exportCmd)
 }
 
 func Execute() {
