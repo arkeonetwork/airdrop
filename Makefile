@@ -9,3 +9,6 @@ generate-contracts:
 
 db-migrate:
 	tern migrate -c db/tern.conf -m db
+
+install:
+	go install ./cmd/...

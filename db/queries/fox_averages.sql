@@ -43,5 +43,7 @@ order by block_number
 select account, sum(avg_over_blocks) / ((select snapshot_end_block from params) - (select snapshot_start_block from params)) avg_hold
 from averageable
 group by account
+-- if we want a min/cut-off amount
+-- having sum(avg_over_blocks) / ((select snapshot_end_block from params) - (select snapshot_start_block from params)) > 0.01
 order by avg_hold desc
 ;
