@@ -7,4 +7,7 @@ const (
 		on conflict on constraint cosmos_staking_events_unique
 		do nothing
 	`
+	sqlFindLatestCosmosStakingBlockIndexed = `
+		select max(block_number) from cosmos_staking_events
+	`
 )
