@@ -26,12 +26,19 @@ var (
 		Short: "gather chain data store in our db",
 		Run:   runIndexer,
 	}
+
+	indexCosmosCmd = &cobra.Command{
+		Use:   "index-cosmos",
+		Short: "cosmos-sdk indexing",
+	}
 )
 
 func init() {
 	rootCmd.PersistentFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(indexCmd)
+	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
+	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 }
 

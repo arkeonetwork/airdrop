@@ -15,6 +15,7 @@ type Chain struct {
 	RpcUrl             string `db:"rpc_url"`
 	SnapshotStartBlock uint64 `db:"snapshot_start_block"`
 	SnapshotEndBlock   uint64 `db:"snapshot_end_block"`
+	Decimals           uint8  `db:"decimals"`
 }
 
 type Transfer struct {
@@ -36,7 +37,7 @@ type StakingContract struct {
 }
 
 type StakingEvent struct {
-	TxHash          string  `db:"txHash"`
+	TxHash          string  `db:"txhash"`
 	LogIndex        uint    `db:"log_index"`
 	Token           string  `db:"token"`
 	StakingContract string  `db:"staking_contract"`
@@ -44,4 +45,15 @@ type StakingEvent struct {
 	Value           float64 `db:"stake_value"` // decimal version of value, can be negative for unstake
 	BlockNumber     uint64  `db:"block_number"`
 	Chain           string  `db:"chain"`
+}
+
+type CosmosStakingEvent struct {
+	EventType   string  `db:"event_type"`
+	Chain       string  `db:"chain"`
+	Delegator   string  `db:"delegator"`
+	Validator   string  `db:"validator"`
+	Value       float64 `db:"amount"`
+	BlockNumber uint64  `db:"block_number"`
+	TxHash      string  `db:"txhash"`
+	EventIndex  int64   `db:"event_index"`
 }

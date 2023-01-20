@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
+	"github.com/ArkeoNetwork/common/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -31,32 +32,24 @@ func runExport(cmd *cobra.Command, args []string) {
 	log.Infof("starting export process for %s, %s", args[0], args[1])
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")
-	c := readConfig(envPath)
-
+	c := utils.ReadDBConfig(envPath)
+	if c == nil {
+		cmd.PrintErrln("db config undefined")
+		return
+	}
 	flags = cmd.Flags()
 	fileName, _ := flags.GetString("output")
 	if fileName == "" {
 		fileName = fmt.Sprintf("/tmp/airdrop_%s_%s.csv", args[0], args[1])
 	}
 
-	params := db.DBConfig{
-		Host:         c.DBHost,
-		Port:         c.DBPort,
-		User:         c.DBUser,
-		Pass:         c.DBPass,
-		DBName:       c.DBName,
-		PoolMaxConns: c.DBPoolMaxConns,
-		PoolMinConns: c.DBPoolMinConns,
-		SSLMode:      c.DBSSLMode,
-	}
-
-	err := exportWeightedTokenAvgs(params, args[0], args[1], fileName)
+	err := exportWeightedTokenAvgs(*c, args[0], args[1], fileName)
 	if err != nil {
 		log.Errorf("error exporting: %+v", err)
 	}
 }
 
-func exportWeightedTokenAvgs(dbConfig db.DBConfig, chain, token, fileName string) error {
+func exportWeightedTokenAvgs(dbConfig utils.DBConfig, chain, token, fileName string) error {
 	d, err := db.New(dbConfig)
 	if err != nil {
 		return errors.Wrapf(err, "error connecting to the db")
