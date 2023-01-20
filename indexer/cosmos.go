@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
-	"sync"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
@@ -76,9 +75,7 @@ func (c *CosmosIndexer) IndexDelegators() error {
 	return nil
 }
 
-func isStakingTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
-	txHash := hashTx(tx)
-	_ = txHash
+func shouldStoreTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 	for _, evt := range txResults.Events {
 		switch evt.GetType() {
 		case "delegate":
@@ -131,6 +128,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 	for i, evt := range evtsSequenced {
 		m := attributesToMap(evt.GetAttributes())
 		if i%2 == 0 {
+			// staking event itself: delegate,unbond,redelegate
 			_, amount, err := parseAmount(m["amount"], c.chain.Decimals)
 			if err != nil {
 				log.Errorf("error parsing amount %s: %+v", m["amount"], err)
@@ -164,10 +162,6 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 				},
 				srcValidator: srcValidator,
 			}
-
-			// should be delegate/un/re?
-			log.Debug(evt)
-
 		} else {
 			// should be message+staking module+spender (delegator address)?
 			log.Debug(evt)
@@ -197,7 +191,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			stakingEvt = nil
 		}
 	}
-	log.Infof("have %d staking events", len(stakingEvents))
+	log.Infof("inserting %d staking events", len(stakingEvents))
 	return c.db.InsertStakingEvents(stakingEvents)
 }
 
@@ -217,39 +211,41 @@ func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
 func (c *CosmosIndexer) indexDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
-		ctx          = context.Background()
-		block        *coretypes.ResultBlock
-		blockResults *coretypes.ResultBlockResults
-		blockErr     error
-		blockResErr  error
-		wg           sync.WaitGroup
+		ctx             = context.Background()
+		txSearchResults []*coretypes.ResultTx
+		txSearchErr     error
 	)
 
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		block, blockErr = c.tm.Block(ctx, &height)
-	}()
-	go func() {
-		defer wg.Done()
-		blockResults, blockResErr = c.tm.BlockResults(ctx, &height)
-	}()
-	wg.Wait()
-	if blockErr != nil {
-		return errors.Wrapf(blockErr, "error reading block %d", height)
-	}
-	if blockResErr != nil {
-		return errors.Wrapf(blockResErr, "error reading blockResults %d", blockResErr)
+	page := 1
+	perPage := 100
+	query := fmt.Sprintf("tx.height=%d AND message.module='staking'", height)
+	txSearchResults = make([]*coretypes.ResultTx, 0, 128)
+	for {
+		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		if err != nil {
+			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
+			break
+		}
+
+		txSearchResults = append(txSearchResults, searchResults.Txs...)
+		if len(txSearchResults) == searchResults.TotalCount {
+			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
+			break
+		}
+		txSearchResults = append(txSearchResults, searchResults.Txs...)
+		page++
 	}
 
-	for i := range block.Block.Txs {
-		tx := block.Block.Txs[i]
-		txHash := hashTx(tx)
-		_ = txHash
-		if isStakingTx(tx, blockResults.TxsResults[i]) {
-			if err := c.handleStakingTx(height, tx, blockResults.TxsResults[i]); err != nil {
-				log.Errorf("error handling staking tx %s: %+v", hashTx(tx), err)
-			}
+	if txSearchErr != nil {
+		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
+	}
+
+	for _, t := range txSearchResults {
+		if !shouldStoreTx(t.Tx, &t.TxResult) {
+			continue
+		}
+		if err := c.handleStakingTx(height, t.Tx, &t.TxResult); err != nil {
+			log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
 		}
 	}
 	return nil
