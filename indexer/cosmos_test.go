@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ArkeoNetwork/common/utils"
+	"github.com/ArkeoNetwork/airdrop/pkg/utils"
+	arkutils "github.com/ArkeoNetwork/common/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-const envPath = "/Users/adamsamere/chaintech/oss/arkeo/airdrop/docker/dev/docker.env"
-
 func TestIndexDelegations(t *testing.T) {
-	c := utils.ReadDBConfig(envPath)
+	c := arkutils.ReadDBConfig(utils.GetEnvPath())
 	if c == nil {
 		fmt.Print("error: no config loaded")
 		return

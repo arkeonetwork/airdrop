@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ArkeoNetwork/common/utils"
+	"github.com/ArkeoNetwork/airdrop/pkg/utils"
+	arkutils "github.com/ArkeoNetwork/common/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,8 +29,7 @@ func TestFindAllChains(t *testing.T) {
 }
 
 func TestFindChain(t *testing.T) {
-	envPath := "/Users/adamsamere/chaintech/oss/arkeo/airdrop/docker/dev/docker.env"
-	c := utils.ReadDBConfig(envPath)
+	c := arkutils.ReadDBConfig(utils.GetEnvPath())
 	if c == nil {
 		fmt.Print("error: no config loaded")
 		return
