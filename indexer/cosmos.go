@@ -72,7 +72,7 @@ func isStakingTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 		switch evt.GetType() {
 		case "delegate":
 			return true
-		case "undelegate":
+		case "unbond":
 			return true
 		case "redelegate":
 			return true
@@ -95,7 +95,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 		case "redelegate":
 			evtsSequenced[evtsSeq] = evt
 			evtsSeq++
-		case "undelegate":
+		case "unbond":
 			evtsSequenced[evtsSeq] = evt
 			evtsSeq++
 		case "message":
@@ -125,9 +125,27 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			if err != nil {
 				log.Errorf("error parsing amount %s: %+v", m["amount"], err)
 			}
+			var srcValidator, destValidator string
+			switch evt.GetType() {
+			case "delegate":
+				destValidator = m["validator"]
+			case "redelegate":
+				// FIXEME: need to split in to unbond and delegate events
+				destValidator = m["destination_validator"]
+				srcValidator = m["source_validator"]
+			case "unbond":
+				srcValidator = m["validator"]
+				amount = -amount
+			}
+
+			validator := destValidator
+			if evt.GetType() == "unbond" {
+				validator = srcValidator
+			}
+
 			stakingEvt = &types.CosmosStakingEvent{
 				EventType:   evt.GetType(),
-				Validator:   m["validator"],
+				Validator:   validator,
 				Chain:       c.chain.Name,
 				Value:       amount,
 				BlockNumber: uint64(height),
