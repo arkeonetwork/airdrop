@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"sync"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
@@ -15,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/rpc/client/http"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -57,6 +59,15 @@ func (c *CosmosIndexer) IndexDelegators() error {
 	startHeight := int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
 
+	latest, err := c.db.FindLatestIndexedCosmosStakingBlock()
+	if err != nil {
+		return errors.Wrapf(err, "error finding latest indexed block")
+	}
+	if latest > startHeight {
+		log.Infof("found latest indexed block %d, starting at %d", latest, latest-1)
+		startHeight = latest - 1
+	}
+
 	for i := startHeight; i <= endHeight; i++ {
 		if err := c.indexDelegations(i); err != nil {
 			log.Errorf("error indexing delegations at height %d: %+v", i, err)
@@ -83,6 +94,7 @@ func isStakingTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 }
 
 func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *abcitypes.ResponseDeliverTx) error {
+	log := log.WithField("height", fmt.Sprintf("%d", height))
 	txHash := hashTx(tx)
 	evtsSequenced := make([]abcitypes.Event, len(txResult.GetEvents()))
 	evtsSeq := int64(0)
@@ -204,15 +216,30 @@ func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
 
 func (c *CosmosIndexer) indexDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
-	ctx := context.Background()
-	block, err := c.tm.Block(ctx, &height)
-	if err != nil {
-		return errors.Wrapf(err, "error reading block at %d", height)
-	}
+	var (
+		ctx          = context.Background()
+		block        *coretypes.ResultBlock
+		blockResults *coretypes.ResultBlockResults
+		blockErr     error
+		blockResErr  error
+		wg           sync.WaitGroup
+	)
 
-	blockResults, err := c.tm.BlockResults(ctx, &height)
-	if err != nil {
-		return errors.Wrapf(err, "error reading block results at %d", height)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		block, blockErr = c.tm.Block(ctx, &height)
+	}()
+	go func() {
+		defer wg.Done()
+		blockResults, blockResErr = c.tm.BlockResults(ctx, &height)
+	}()
+	wg.Wait()
+	if blockErr != nil {
+		return errors.Wrapf(blockErr, "error reading block %d", height)
+	}
+	if blockResErr != nil {
+		return errors.Wrapf(blockResErr, "error reading blockResults %d", blockResErr)
 	}
 
 	for i := range block.Block.Txs {
@@ -220,7 +247,7 @@ func (c *CosmosIndexer) indexDelegations(height int64) error {
 		txHash := hashTx(tx)
 		_ = txHash
 		if isStakingTx(tx, blockResults.TxsResults[i]) {
-			if err = c.handleStakingTx(height, tx, blockResults.TxsResults[i]); err != nil {
+			if err := c.handleStakingTx(height, tx, blockResults.TxsResults[i]); err != nil {
 				log.Errorf("error handling staking tx %s: %+v", hashTx(tx), err)
 			}
 		}

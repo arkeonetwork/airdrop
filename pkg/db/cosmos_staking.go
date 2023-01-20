@@ -40,3 +40,16 @@ func (d *AirdropDB) InsertStakingEvents(event []*types.CosmosStakingEvent) error
 	}
 	return nil
 }
+
+func (d *AirdropDB) FindLatestIndexedCosmosStakingBlock() (int64, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return 0, errors.Wrapf(err, "error obtaining db connection")
+	}
+	var r int64
+	if err = selectOne(conn, sqlFindLatestCosmosStakingBlockIndexed, &r); err != nil {
+		return 0, errors.Wrapf(err, "error selecting latest block")
+	}
+	return r, nil
+}
