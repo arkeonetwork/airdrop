@@ -105,9 +105,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			}
 			if module, ok := m["module"]; ok && module == "staking" {
 				if delegator, ok := m["sender"]; ok {
-					log.Infof("adding delegate event delegator %s", delegator)
-					// log.Infof("setting module_staking_delegator to %s", delegator)
-					// attribMap["module_staking_delegator"] = delegator
+					log.Debugf("adding delegate event delegator %s", delegator)
 					evtsSequenced[evtsSeq] = evt
 					evtsIndexMap[evtsSeq] = int64(i)
 					evtsSeq++
@@ -117,7 +115,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 	}
 	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced)/2)
 	evtsSequenced = evtsSequenced[:evtsSeq]
-	var stakingEvt *types.CosmosStakingEvent
+	var stakingEvt *stakingEventWrapper
 	for i, evt := range evtsSequenced {
 		m := attributesToMap(evt.GetAttributes())
 		if i%2 == 0 {
@@ -143,14 +141,18 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 				validator = srcValidator
 			}
 
-			stakingEvt = &types.CosmosStakingEvent{
-				EventType:   evt.GetType(),
-				Validator:   validator,
-				Chain:       c.chain.Name,
-				Value:       amount,
-				BlockNumber: uint64(height),
-				TxHash:      txHash,
+			stakingEvt = &stakingEventWrapper{
+				CosmosStakingEvent: types.CosmosStakingEvent{
+					EventType:   evt.GetType(),
+					Validator:   validator,
+					Chain:       c.chain.Name,
+					Value:       amount,
+					BlockNumber: uint64(height),
+					TxHash:      txHash,
+				},
+				srcValidator: srcValidator,
 			}
+
 			// should be delegate/un/re?
 			log.Debug(evt)
 
@@ -166,12 +168,29 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			}
 			stakingEvt.Delegator = m["sender"]
 			stakingEvt.EventIndex = evtIndex
-			stakingEvents = append(stakingEvents, stakingEvt)
+			stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+			if stakingEvt.EventType == "redelegate" {
+				unbondEvt := types.CosmosStakingEvent{
+					EventType:   stakingEvt.EventType,
+					Delegator:   stakingEvt.Delegator,
+					Validator:   stakingEvt.srcValidator,
+					Chain:       c.chain.Name,
+					Value:       -stakingEvt.Value,
+					BlockNumber: uint64(height),
+					TxHash:      txHash,
+				}
+				stakingEvents = append(stakingEvents, &unbondEvt)
+			}
 			stakingEvt = nil
 		}
 	}
 	log.Infof("have %d staking events", len(stakingEvents))
 	return c.db.InsertStakingEvents(stakingEvents)
+}
+
+type stakingEventWrapper struct {
+	types.CosmosStakingEvent
+	srcValidator string
 }
 
 func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {

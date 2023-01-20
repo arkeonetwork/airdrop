@@ -13,7 +13,7 @@ var (
 		Use:   "delegators",
 		Short: "gather cosmos-sdk chain data store in our db",
 		Run:   runDelegatorsIndexer,
-		// Args:  cobra.ExactValidArgs(2),
+		Args:  cobra.ExactValidArgs(1),
 	}
 )
 

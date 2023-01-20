@@ -20,7 +20,8 @@ func TestIndexDelegations(t *testing.T) {
 	// height := int64(12940516)
 	// height := int64(12940505)
 	// height := int64(12940507)
-	height := int64(13742000)
+	// height := int64(13742000)
+	height := int64(12940754)
 	chain := "GAIA"
 	params := CosmosIndexerParams{Chain: chain, DB: *c}
 	indxr, err := NewCosmosIndexer(params)
