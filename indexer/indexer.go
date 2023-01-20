@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
-	"github.com/ArkeoNetwork/directory/pkg/logging"
+	"github.com/ArkeoNetwork/common/logging"
+	"github.com/ArkeoNetwork/common/utils"
 )
 
 type IndexerAppParams struct {
 	SnapshotStart uint64
 	SnapshotEnd   uint64
-	db.DBConfig
+	utils.DBConfig
 }
 
 type IndexerApp struct {

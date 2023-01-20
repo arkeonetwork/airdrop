@@ -4,9 +4,8 @@ import (
 	"flag"
 
 	"github.com/ArkeoNetwork/airdrop/indexer"
-	"github.com/ArkeoNetwork/airdrop/pkg/db"
-	"github.com/ArkeoNetwork/directory/pkg/config"
-	"github.com/ArkeoNetwork/directory/pkg/logging"
+	"github.com/ArkeoNetwork/common/logging"
+	"github.com/ArkeoNetwork/common/utils"
 )
 
 type Config struct {
@@ -44,28 +43,24 @@ func main() {
 	flag.Parse()
 	c := &Config{}
 	if *envPath == "" {
-		if err := config.LoadFromEnv(c, configNames...); err != nil {
+		if err := utils.LoadFromEnv(c, configNames...); err != nil {
 			log.Panicf("failed to load config from env: %+v", err)
 		}
 	} else {
-		if err := config.Load(*envPath, c); err != nil {
+		if err := utils.Load(*envPath, c); err != nil {
 			log.Panicf("failed to load config: %+v", err)
 		}
 	}
 
+	dbc := utils.ReadDBConfig(*envPath)
+	if dbc == nil {
+		log.Error("db config undefined")
+		return
+	}
 	indexerApp := indexer.NewIndexer(indexer.IndexerAppParams{
 		SnapshotStart: c.SnapshotStart,
 		SnapshotEnd:   c.SnapshotEnd,
-		DBConfig: db.DBConfig{
-			Host:         c.DBHost,
-			Port:         c.DBPort,
-			User:         c.DBUser,
-			Pass:         c.DBPass,
-			DBName:       c.DBName,
-			PoolMaxConns: c.DBPoolMaxConns,
-			PoolMinConns: c.DBPoolMinConns,
-			SSLMode:      c.DBSSLMode,
-		},
+		DBConfig:      *dbc,
 	})
 	indexerApp.Start()
 	log.Debug("finished data generation process")
