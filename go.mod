@@ -20,7 +20,6 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
