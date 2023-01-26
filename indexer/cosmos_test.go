@@ -24,8 +24,29 @@ func TestIndexDelegations(t *testing.T) {
 	chain := "GAIA"
 	params := CosmosIndexerParams{Chain: chain, DB: *c}
 	indxr, err := NewCosmosIndexer(params)
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	assert.NotNil(t, indxr)
 	err = indxr.indexDelegations(height)
+	assert.Nil(t, err)
+}
+
+func TestIndexLP(t *testing.T) {
+	c := arkutils.ReadDBConfig(utils.GetEnvPath())
+	if c == nil {
+		fmt.Print("error: no config loaded")
+		return
+	}
+
+	height := int64(9272904)
+	chain := "THOR"
+	params := CosmosIndexerParams{Chain: chain, DB: *c}
+	indxr, err := NewCosmosIndexer(params)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+	assert.NotNil(t, indxr)
+	err = indxr.indexLP(height)
 	assert.Nil(t, err)
 }

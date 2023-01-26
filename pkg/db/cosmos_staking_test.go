@@ -22,7 +22,7 @@ func TestFindLatestIndexedCosmosStakingBlock(t *testing.T) {
 		t.FailNow()
 	}
 
-	latest, err := d.FindLatestIndexedCosmosStakingBlock()
+	latest, err := d.FindLatestIndexedCosmosStakingBlock("GAIA")
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}

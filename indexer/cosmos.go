@@ -53,12 +53,35 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	return &CosmosIndexer{db: d, tm: tm, chain: chain, startHeight: params.StartHeight, endHeight: params.EndHeight}, nil
 }
 
-// 12940505 first cosmos block on 11/22 UTC 710A86BF2922BA304026102128359EBA941601F2C4B010E2B81D583FAB4A77B1
+func (c *CosmosIndexer) IndexLP() error {
+	startHeight := int64(c.chain.SnapshotStartBlock)
+	endHeight := int64(c.chain.SnapshotEndBlock)
+	// endHeight := startHeight
+	_, _ = startHeight, endHeight
+
+	latest, err := c.db.FindLatestIndexedCosmosLPBlock(c.chain.Name)
+	if err != nil {
+		return errors.Wrapf(err, "error finding latest indexed block")
+	}
+	if latest > startHeight {
+		log.Infof("found latest indexed block %d, starting at %d", latest, latest-1)
+		startHeight = latest - 1
+	}
+
+	for i := startHeight; i <= endHeight; i++ {
+		if err := c.indexLP(i); err != nil {
+			log.Errorf("error indexing delegations at height %d: %+v", i, err)
+		}
+	}
+
+	return nil
+}
+
 func (c *CosmosIndexer) IndexDelegators() error {
 	startHeight := int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
 
-	latest, err := c.db.FindLatestIndexedCosmosStakingBlock()
+	latest, err := c.db.FindLatestIndexedCosmosStakingBlock(c.chain.Name)
 	if err != nil {
 		return errors.Wrapf(err, "error finding latest indexed block")
 	}
@@ -208,6 +231,76 @@ func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
 	return m
 }
 
+func (c *CosmosIndexer) indexLP(height int64) error {
+	return nil
+}
+
+func (c *CosmosIndexer) indexLPOld(height int64) error {
+	log := log.WithField("height", fmt.Sprintf("%d", height))
+	var (
+		ctx = context.Background()
+		// txSearchResults []*coretypes.ResultTx
+		// txSearchErr     error
+	)
+
+	// end block events have LP events for chains other than THOR
+	blockResults, err := c.tm.BlockResults(ctx, &height)
+	if err != nil {
+		return errors.Wrapf(err, "error reading search results height %d", height)
+	}
+	for _, evt := range blockResults.EndBlockEvents {
+		if evt.Type == "add_liquidity" || evt.Type == "withdraw" ||
+			(evt.Type == "message" && string(evt.Attributes[0].Key) == "action" && string(evt.Attributes[0].Value) == "deposit") {
+			log.Infof("%s event", evt.Type)
+			log.Infof("FOREIGN %s event %s", evt.Type, "<unknown>")
+			for _, attr := range evt.Attributes {
+				log.Infof("message attr %s:%s", attr.Key, attr.Value)
+			}
+		}
+		// log.Infof("end block event %s", evt.Type)
+	}
+
+	// native RUNE LP events are tx events with a message event and action attribute of deposit
+	var (
+		page            = 1
+		perPage         = 100
+		query           = fmt.Sprintf("tx.height=%d AND message.action='deposit'", height) //  AND add_liquidity.pool='AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E'
+		txSearchResults = make([]*coretypes.ResultTx, 0, 128)
+		txSearchErr     error
+	)
+	for {
+		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		if err != nil {
+			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
+			break
+		}
+
+		txSearchResults = append(txSearchResults, searchResults.Txs...)
+		if len(txSearchResults) == searchResults.TotalCount {
+			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
+			break
+		}
+		page++
+	}
+
+	if txSearchErr != nil {
+		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
+	}
+
+	for _, sr := range txSearchResults {
+		txhash := hashTx(sr.Tx)
+		for _, evt := range sr.TxResult.Events {
+			if evt.Type == "add_liquidity" || evt.Type == "withdraw" {
+				log.Infof("NATIVE %s event %s", evt.Type, txhash)
+				for _, attr := range evt.Attributes {
+					log.Infof("attr %s:%s", attr.Key, attr.Value)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (c *CosmosIndexer) indexDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
@@ -232,7 +325,6 @@ func (c *CosmosIndexer) indexDelegations(height int64) error {
 			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
 			break
 		}
-		txSearchResults = append(txSearchResults, searchResults.Txs...)
 		page++
 	}
 
