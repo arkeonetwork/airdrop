@@ -15,11 +15,11 @@ var (
 		Run:   runDelegatorsIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
-	indexCosmosLPCmd = &cobra.Command{
-		Use:   "lp [chain]",
+	indexCosmosLPCmd = &cobra.Command{ // TODO rename THOR
+		Use:   "lp [chain] [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
 		Run:   runLPIndexer,
-		Args:  cobra.ExactValidArgs(1),
+		Args:  cobra.ExactValidArgs(2),
 	}
 )
 
@@ -57,6 +57,7 @@ func runLPIndexer(cmd *cobra.Command, args []string) {
 	}
 
 	chain := args[0]
+	poolName := args[1]
 	params := indexer.CosmosIndexerParams{Chain: chain, DB: *c}
 	indxr, err := indexer.NewCosmosIndexer(params)
 	if err != nil {
@@ -64,7 +65,7 @@ func runLPIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if err = indxr.IndexLP(); err != nil {
+	if err = indxr.IndexLP(poolName); err != nil {
 		cmd.PrintErrf("error indexing LP: %+v", err)
 	}
 }

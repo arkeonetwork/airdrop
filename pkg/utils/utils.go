@@ -17,6 +17,11 @@ func BigIntToFloat(value *big.Int, decimals uint8) float64 {
 	return transferValueDecimal
 }
 
+// Not safe for large precisions (ETH)
+func FromBaseUnits(in int64, precision uint8) float64 {
+	return float64(in) / math.Pow10(int(precision))
+}
+
 func GetEnvPath() string {
 	envPath := os.Getenv("AIRDROP_ENV_PATH")
 	if envPath == "" {

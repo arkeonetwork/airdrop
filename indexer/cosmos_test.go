@@ -39,7 +39,7 @@ func TestIndexLP(t *testing.T) {
 		return
 	}
 
-	height := int64(9272904)
+	height := int64(9286118)
 	chain := "THOR"
 	params := CosmosIndexerParams{Chain: chain, DB: *c}
 	indxr, err := NewCosmosIndexer(params)
@@ -47,6 +47,6 @@ func TestIndexLP(t *testing.T) {
 		t.FailNow()
 	}
 	assert.NotNil(t, indxr)
-	err = indxr.indexLP(height)
+	err = indxr.indexLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
 	assert.Nil(t, err)
 }

@@ -4,14 +4,17 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/ArkeoNetwork/airdrop/pkg/utils"
 	arkutils "github.com/ArkeoNetwork/common/utils"
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/rpc/client/http"
@@ -30,6 +33,7 @@ type CosmosIndexerParams struct {
 type CosmosIndexer struct {
 	db          *db.AirdropDB
 	tm          *http.HTTP
+	lcd         *resty.Client
 	chain       *types.Chain
 	startHeight int64
 	endHeight   int64
@@ -49,17 +53,25 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", params.TendermintHost)
 	}
+	lcd := resty.New().SetTimeout(10 * time.Second).SetBaseURL(chain.LcdUrl)
 
-	return &CosmosIndexer{db: d, tm: tm, chain: chain, startHeight: params.StartHeight, endHeight: params.EndHeight}, nil
+	return &CosmosIndexer{db: d, tm: tm, lcd: lcd, chain: chain, startHeight: params.StartHeight, endHeight: params.EndHeight}, nil
 }
 
-func (c *CosmosIndexer) IndexLP() error {
+func (c *CosmosIndexer) IndexLP(poolName string) error {
 	startHeight := int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
-	// endHeight := startHeight
-	_, _ = startHeight, endHeight
 
-	latest, err := c.db.FindLatestIndexedCosmosLPBlock(c.chain.Name)
+	latestBlock, err := c.tm.Block(context.Background(), nil)
+	if err != nil {
+		return errors.Wrapf(err, "error getting latest block")
+	}
+
+	if endHeight > latestBlock.Block.Height {
+		endHeight = latestBlock.Block.Height
+	}
+
+	latest, err := c.db.FindLatestIndexedThorchainLPBlock(c.chain.Name, poolName)
 	if err != nil {
 		return errors.Wrapf(err, "error finding latest indexed block")
 	}
@@ -68,10 +80,13 @@ func (c *CosmosIndexer) IndexLP() error {
 		startHeight = latest - 1
 	}
 
-	for i := startHeight; i <= endHeight; i++ {
-		if err := c.indexLP(i); err != nil {
+	blocksPerDay := int64(6 * 60 * 24)
+	// get up to an extra day of blocks, trim if post cutoff
+	for i := startHeight; i <= endHeight+blocksPerDay; i += blocksPerDay {
+		if err := c.indexLP(i, poolName); err != nil {
 			log.Errorf("error indexing delegations at height %d: %+v", i, err)
 		}
+		log.Infof("indexed %s lp block %d", poolName, i)
 	}
 
 	return nil
@@ -231,72 +246,97 @@ func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
 	return m
 }
 
-func (c *CosmosIndexer) indexLP(height int64) error {
-	return nil
+type ThorLiquidityProvider struct {
+	Asset             string `json:"asset"`
+	AddressThor       string `json:"rune_address"`
+	AddressNative     string `json:"asset_address"`
+	LastAddHeight     int64  `json:"last_add_height"`
+	Units             int64  `json:"units,string"`
+	PendingRune       int64  `json:"pending_rune,string"`
+	PendingAsset      int64  `json:"pending_asset,string"`
+	RuneDepositValue  int64  `json:"rune_deposit_value,string"`
+	AssetDepositValue int64  `json:"asset_deposit_value,string"`
 }
 
-func (c *CosmosIndexer) indexLPOld(height int64) error {
-	log := log.WithField("height", fmt.Sprintf("%d", height))
-	var (
-		ctx = context.Background()
-		// txSearchResults []*coretypes.ResultTx
-		// txSearchErr     error
-	)
-
-	// end block events have LP events for chains other than THOR
-	blockResults, err := c.tm.BlockResults(ctx, &height)
+func (c *CosmosIndexer) findThorLpsByHeight(height int64, poolName string) ([]ThorLiquidityProvider, error) {
+	///thorchain/pool/ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D/liquidity_providers
+	path := fmt.Sprintf("/thorchain/pool/%s/liquidity_providers", poolName)
+	res, err := c.lcd.R().SetQueryParam("height", fmt.Sprintf("%d", height)).Get(path)
 	if err != nil {
-		return errors.Wrapf(err, "error reading search results height %d", height)
+		return nil, errors.Wrapf(err, "error reading balances at height %d, pool %s", height, poolName)
 	}
-	for _, evt := range blockResults.EndBlockEvents {
-		if evt.Type == "add_liquidity" || evt.Type == "withdraw" ||
-			(evt.Type == "message" && string(evt.Attributes[0].Key) == "action" && string(evt.Attributes[0].Value) == "deposit") {
-			log.Infof("%s event", evt.Type)
-			log.Infof("FOREIGN %s event %s", evt.Type, "<unknown>")
-			for _, attr := range evt.Attributes {
-				log.Infof("message attr %s:%s", attr.Key, attr.Value)
-			}
-		}
-		// log.Infof("end block event %s", evt.Type)
+	if res.StatusCode() != 200 {
+		return nil, fmt.Errorf("error reading balances at height %d, pool %s, status code %d", height, poolName, res.StatusCode())
 	}
 
-	// native RUNE LP events are tx events with a message event and action attribute of deposit
-	var (
-		page            = 1
-		perPage         = 100
-		query           = fmt.Sprintf("tx.height=%d AND message.action='deposit'", height) //  AND add_liquidity.pool='AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E'
-		txSearchResults = make([]*coretypes.ResultTx, 0, 128)
-		txSearchErr     error
-	)
-	for {
-		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
-		if err != nil {
-			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
-			break
-		}
+	results := make([]ThorLiquidityProvider, 0, 1024)
+	if err = json.Unmarshal(res.Body(), &results); err != nil {
+		return nil, errors.Wrapf(err, "error unmarshalling balances at height %d, pool %s", height, poolName)
+	}
+	return results, nil
+}
 
-		txSearchResults = append(txSearchResults, searchResults.Txs...)
-		if len(txSearchResults) == searchResults.TotalCount {
-			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
-			break
-		}
-		page++
+type ThorPool struct {
+	Asset               string `json:"asset"`
+	BalanceAsset        int64  `json:"balance_asset,string"`
+	BalanceRune         int64  `json:"balance_rune,string"`
+	PoolUnits           int64  `json:"pool_units,string"`
+	LpUnits             int64  `json:"LP_units,string"`
+	Status              string `json:"status"`
+	SynthSupply         int64  `json:"synth_supply,string"`
+	SynthUnits          int64  `json:"synth_units,string"`
+	PendingInboundRune  int64  `json:"pending_inbound_rune,string"`
+	PendingInboundAsset int64  `json:"pending_inbound_asset,string"`
+}
+
+func (c *CosmosIndexer) findPoolByHeight(height int64, poolName string) (ThorPool, error) {
+	pool := ThorPool{}
+	path := fmt.Sprintf("/thorchain/pool/%s", poolName)
+	res, err := c.lcd.R().SetQueryParam("height", fmt.Sprintf("%d", height)).Get(path)
+	if err != nil {
+		return pool, errors.Wrapf(err, "error reading pool at height %d, pool %s", height, poolName)
+	}
+	if res.StatusCode() != 200 {
+		return pool, fmt.Errorf("error reading pool at height %d, pool %s, status code %d", height, poolName, res.StatusCode())
 	}
 
-	if txSearchErr != nil {
-		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
+	if err = json.Unmarshal(res.Body(), &pool); err != nil {
+		return pool, errors.Wrapf(err, "error unmarshalling pool at height %d, pool %s", height, poolName)
+	}
+	return pool, nil
+}
+
+func (c *CosmosIndexer) indexLP(height int64, poolName string) error {
+	pool, err := c.findPoolByHeight(height, poolName)
+	if err != nil {
+		return errors.Wrapf(err, "error reading pool at height %d for %s", height, poolName)
+	}
+	_ = pool
+	totalUnits := pool.PoolUnits
+	lpBalances, err := c.findThorLpsByHeight(height, poolName)
+	if err != nil {
+		return errors.Wrapf(err, "error reading balances at height %d for %s", height, poolName)
 	}
 
-	for _, sr := range txSearchResults {
-		txhash := hashTx(sr.Tx)
-		for _, evt := range sr.TxResult.Events {
-			if evt.Type == "add_liquidity" || evt.Type == "withdraw" {
-				log.Infof("NATIVE %s event %s", evt.Type, txhash)
-				for _, attr := range evt.Attributes {
-					log.Infof("attr %s:%s", attr.Key, attr.Value)
-				}
-			}
-		}
+	batch := make([]types.ThorLPBalanceEvent, 0, len(lpBalances))
+	for _, bal := range lpBalances {
+		share := float64(bal.Units) / float64(totalUnits)
+		shareAsset := share * utils.FromBaseUnits(pool.BalanceAsset, 8)
+		shareRune := share * utils.FromBaseUnits(pool.BalanceRune, 8)
+		batch = append(batch,
+			types.ThorLPBalanceEvent{
+				Chain:         c.chain.Name,
+				BlockNumber:   int64(height),
+				Pool:          poolName,
+				AddressThor:   bal.AddressThor,
+				AddressNative: bal.AddressNative,
+				BalanceRune:   shareRune,
+				BalanceAsset:  shareAsset,
+			},
+		)
+	}
+	if err = c.db.InsertThorLPBalanceEvent(batch); err != nil {
+		return errors.Wrapf(err, "error inserting thor lp balances at height %d for %s", height, poolName)
 	}
 	return nil
 }
@@ -371,3 +411,71 @@ func parseAmount(in string, decimals uint8) (asset string, amount float64, err e
 	amount = utils.BigIntToFloat(iamt, uint8(decimals))
 	return
 }
+
+/*
+func (c *CosmosIndexer) indexLPOld(height int64) error {
+	log := log.WithField("height", fmt.Sprintf("%d", height))
+	var (
+		ctx = context.Background()
+		// txSearchResults []*coretypes.ResultTx
+		// txSearchErr     error
+	)
+
+	// end block events have LP events for chains other than THOR
+	blockResults, err := c.tm.BlockResults(ctx, &height)
+	if err != nil {
+		return errors.Wrapf(err, "error reading search results height %d", height)
+	}
+	for _, evt := range blockResults.EndBlockEvents {
+		if evt.Type == "add_liquidity" || evt.Type == "withdraw" ||
+			(evt.Type == "message" && string(evt.Attributes[0].Key) == "action" && string(evt.Attributes[0].Value) == "deposit") {
+			log.Infof("%s event", evt.Type)
+			log.Infof("FOREIGN %s event %s", evt.Type, "<unknown>")
+			for _, attr := range evt.Attributes {
+				log.Infof("message attr %s:%s", attr.Key, attr.Value)
+			}
+		}
+		// log.Infof("end block event %s", evt.Type)
+	}
+
+	// native RUNE LP events are tx events with a message event and action attribute of deposit
+	var (
+		page            = 1
+		perPage         = 100
+		query           = fmt.Sprintf("tx.height=%d AND message.action='deposit'", height) //  AND add_liquidity.pool='AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E'
+		txSearchResults = make([]*coretypes.ResultTx, 0, 128)
+		txSearchErr     error
+	)
+	for {
+		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		if err != nil {
+			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
+			break
+		}
+
+		txSearchResults = append(txSearchResults, searchResults.Txs...)
+		if len(txSearchResults) == searchResults.TotalCount {
+			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
+			break
+		}
+		page++
+	}
+
+	if txSearchErr != nil {
+		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
+	}
+
+	for _, sr := range txSearchResults {
+		txhash := hashTx(sr.Tx)
+		for _, evt := range sr.TxResult.Events {
+			if evt.Type == "add_liquidity" || evt.Type == "withdraw" {
+				log.Infof("NATIVE %s event %s", evt.Type, txhash)
+				for _, attr := range evt.Attributes {
+					log.Infof("attr %s:%s", attr.Key, attr.Value)
+				}
+			}
+		}
+	}
+	return nil
+}
+*/

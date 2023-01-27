@@ -16,6 +16,7 @@ type Chain struct {
 	SnapshotStartBlock uint64 `db:"snapshot_start_block"`
 	SnapshotEndBlock   uint64 `db:"snapshot_end_block"`
 	Decimals           uint8  `db:"decimals"`
+	LcdUrl             string `db:"lcd_url"` // cosmos chains
 }
 
 type Transfer struct {
@@ -56,4 +57,14 @@ type CosmosStakingEvent struct {
 	BlockNumber uint64  `db:"block_number"`
 	TxHash      string  `db:"txhash"`
 	EventIndex  int64   `db:"event_index"`
+}
+
+type ThorLPBalanceEvent struct {
+	Chain         string  `db:"chain"`
+	BlockNumber   int64   `db:"block_number"`
+	Pool          string  `db:"pool"`
+	AddressThor   string  `db:"address_thor"`
+	AddressNative string  `db:"address_native"`
+	BalanceRune   float64 `db:"balance_rune"`
+	BalanceAsset  float64 `db:"balance_asset"`
 }

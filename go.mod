@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/ArkeoNetwork/common v0.0.1
 	github.com/ethereum/go-ethereum v1.10.26
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
