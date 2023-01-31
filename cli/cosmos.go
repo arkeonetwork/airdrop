@@ -15,10 +15,16 @@ var (
 		Run:   runDelegatorsIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
-	indexCosmosLPCmd = &cobra.Command{ // TODO rename THOR
-		Use:   "lp [chain] [pool]",
+	indexOsmoLPCmd = &cobra.Command{ // TODO rename THOR
+		Use:   "thor-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
-		Run:   runLPIndexer,
+		Run:   runThorLPIndexer,
+		Args:  cobra.ExactValidArgs(2),
+	}
+	indexThorchainLPCmd = &cobra.Command{ // TODO rename THOR
+		Use:   "thor-lp [pool]",
+		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
+		Run:   runThorLPIndexer,
 		Args:  cobra.ExactValidArgs(2),
 	}
 )
@@ -40,14 +46,17 @@ func runDelegatorsIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if err := indxr.IndexDelegators(); err != nil {
+	if err := indxr.IndexCosmosDelegators(); err != nil {
 		fmt.Printf("error indexing delegators: %+v", err)
 		cmd.PrintErrf("error indexing delegators: %+v", err)
 		return
 	}
 }
 
-func runLPIndexer(cmd *cobra.Command, args []string) {
+func runThorSaversIndexer(cmd *cobra.Command, args []string) {
+}
+
+func runThorLPIndexer(cmd *cobra.Command, args []string) {
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")
 	c := utils.ReadDBConfig(envPath)
@@ -65,7 +74,7 @@ func runLPIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if err = indxr.IndexLP(poolName); err != nil {
+	if err = indxr.IndexThorLP(poolName); err != nil {
 		cmd.PrintErrf("error indexing LP: %+v", err)
 	}
 }

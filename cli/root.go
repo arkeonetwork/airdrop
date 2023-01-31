@@ -38,7 +38,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(indexCmd)
 	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
-	indexCosmosCmd.AddCommand(indexCosmosLPCmd)
+	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 }

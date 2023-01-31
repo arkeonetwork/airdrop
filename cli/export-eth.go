@@ -17,9 +17,9 @@ type ExportParams struct {
 
 var (
 	exportCmd = &cobra.Command{
-		Use:   "export [chain] [token]",
+		Use:   "export-eth [chain] [token]",
 		Short: "export aggregate data",
-		Run:   runExport,
+		Run:   runExportEthTokenAvg,
 		Args:  cobra.ExactValidArgs(2),
 	}
 )
@@ -28,7 +28,7 @@ func init() {
 	exportCmd.Flags().StringP("output", "f", "", "csv output file, default /tmp/airdrop_{chain}_{token}.csv")
 }
 
-func runExport(cmd *cobra.Command, args []string) {
+func runExportEthTokenAvg(cmd *cobra.Command, args []string) {
 	log.Infof("starting export process for %s, %s", args[0], args[1])
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")

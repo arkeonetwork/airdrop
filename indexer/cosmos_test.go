@@ -28,7 +28,7 @@ func TestIndexDelegations(t *testing.T) {
 		t.FailNow()
 	}
 	assert.NotNil(t, indxr)
-	err = indxr.indexDelegations(height)
+	err = indxr.indexCosmosDelegations(height)
 	assert.Nil(t, err)
 }
 
@@ -47,6 +47,6 @@ func TestIndexLP(t *testing.T) {
 		t.FailNow()
 	}
 	assert.NotNil(t, indxr)
-	err = indxr.indexLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
+	err = indxr.indexThorLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
 	assert.Nil(t, err)
 }

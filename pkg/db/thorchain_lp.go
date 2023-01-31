@@ -21,6 +21,7 @@ func (d *AirdropDB) FindLatestIndexedThorchainLPBlock(chain string, poolName str
 	return r, nil
 }
 
+// this writes a per block "event"
 func (d *AirdropDB) InsertThorLPBalanceEvent(event []types.ThorLPBalanceEvent) error {
 	conn, err := d.getConnection()
 	defer conn.Release()
