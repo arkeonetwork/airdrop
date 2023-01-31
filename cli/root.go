@@ -22,8 +22,8 @@ var (
 	}
 
 	indexCmd = &cobra.Command{
-		Use:   "index",
-		Short: "gather chain data store in our db",
+		Use:   "index-eth",
+		Short: "gather eth chain data store in our db",
 		Run:   runIndexer,
 	}
 
@@ -39,6 +39,7 @@ func init() {
 	rootCmd.AddCommand(indexCmd)
 	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
 	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
+	indexCosmosCmd.AddCommand(indexOsmoLPCmd)
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -281,25 +280,6 @@ func parseAmount(in string, decimals uint8) (asset string, amount float64, err e
 
 	amount = utils.BigIntToFloat(iamt, uint8(decimals))
 	return
-}
-
-func (c *CosmosIndexer) indexOsmoLP(height int64) error {
-	log := log.WithField("height", fmt.Sprintf("%d", height))
-	var (
-		ctx = context.Background()
-		// txSearchResults []*coretypes.ResultTx
-		// txSearchErr     error
-	)
-	_ = log
-	// end block events have LP events for chains other than THOR
-	blockResults, err := c.tm.BlockResults(ctx, &height)
-	if err != nil {
-		return errors.Wrapf(err, "error reading search results height %d", height)
-	}
-	for _, evt := range blockResults.EndBlockEvents {
-		log.Infof("evt %s", evt.Type)
-	}
-	return nil
 }
 
 /*

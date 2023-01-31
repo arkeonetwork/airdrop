@@ -32,7 +32,7 @@ func TestIndexDelegations(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestIndexLP(t *testing.T) {
+func TestIndexThorLP(t *testing.T) {
 	c := arkutils.ReadDBConfig(utils.GetEnvPath())
 	if c == nil {
 		fmt.Print("error: no config loaded")
@@ -48,5 +48,24 @@ func TestIndexLP(t *testing.T) {
 	}
 	assert.NotNil(t, indxr)
 	err = indxr.indexThorLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
+	assert.Nil(t, err)
+}
+
+func TestIndexOsmoLP(t *testing.T) {
+	c := arkutils.ReadDBConfig(utils.GetEnvPath())
+	if c == nil {
+		fmt.Print("error: no config loaded")
+		return
+	}
+
+	height := int64(7455619)
+	chain := "THOR"
+	params := CosmosIndexerParams{Chain: chain, DB: *c}
+	indxr, err := NewCosmosIndexer(params)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+	assert.NotNil(t, indxr)
+	err = indxr.indexOsmoLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
 	assert.Nil(t, err)
 }

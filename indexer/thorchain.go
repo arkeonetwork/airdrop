@@ -104,6 +104,8 @@ func (c *CosmosIndexer) indexThorLP(height int64, poolName string) error {
 	return nil
 }
 
+// find lp balances at a given height
+// Savers almost identical: /thorchain/pool/{pool}/savers
 func (c *CosmosIndexer) findThorLpsByHeight(height int64, poolName string) ([]ThorLiquidityProvider, error) {
 	path := fmt.Sprintf("/thorchain/pool/%s/liquidity_providers", poolName)
 	res, err := c.lcd.R().SetQueryParam("height", fmt.Sprintf("%d", height)).Get(path)

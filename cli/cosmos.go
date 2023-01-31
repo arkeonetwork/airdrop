@@ -16,16 +16,16 @@ var (
 		Args:  cobra.ExactValidArgs(1),
 	}
 	indexOsmoLPCmd = &cobra.Command{ // TODO rename THOR
-		Use:   "thor-lp [pool]",
+		Use:   "osmo-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
-		Run:   runThorLPIndexer,
-		Args:  cobra.ExactValidArgs(2),
+		Run:   runOsmoLPIndexer,
+		Args:  cobra.ExactValidArgs(1),
 	}
 	indexThorchainLPCmd = &cobra.Command{ // TODO rename THOR
 		Use:   "thor-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
 		Run:   runThorLPIndexer,
-		Args:  cobra.ExactValidArgs(2),
+		Args:  cobra.ExactValidArgs(1),
 	}
 )
 
@@ -65,9 +65,8 @@ func runThorLPIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	chain := args[0]
-	poolName := args[1]
-	params := indexer.CosmosIndexerParams{Chain: chain, DB: *c}
+	poolName := args[0]
+	params := indexer.CosmosIndexerParams{Chain: "THOR", DB: *c}
 	indxr, err := indexer.NewCosmosIndexer(params)
 	if err != nil {
 		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
@@ -75,6 +74,28 @@ func runThorLPIndexer(cmd *cobra.Command, args []string) {
 	}
 
 	if err = indxr.IndexThorLP(poolName); err != nil {
+		cmd.PrintErrf("error indexing LP: %+v", err)
+	}
+}
+
+func runOsmoLPIndexer(cmd *cobra.Command, args []string) {
+	flags := cmd.InheritedFlags()
+	envPath, _ := flags.GetString("env")
+	c := utils.ReadDBConfig(envPath)
+	if c == nil {
+		cmd.PrintErrf("no config for path %s", envPath)
+		return
+	}
+
+	poolName := args[0]
+	params := indexer.CosmosIndexerParams{Chain: "OSMO", DB: *c}
+	indxr, err := indexer.NewCosmosIndexer(params)
+	if err != nil {
+		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
+		return
+	}
+
+	if err = indxr.IndexOsmoLP(poolName); err != nil {
 		cmd.PrintErrf("error indexing LP: %+v", err)
 	}
 }
