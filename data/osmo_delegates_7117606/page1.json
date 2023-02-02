@@ -1,0 +1,1108 @@
+{
+  "delegation_responses": [
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqrtqudvxhcan3fe2r98834ge8r8nffufte69l",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq98alvqxvxymc9jgc7nmf22p804xqlw97r6g9",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq925fjqrhpx6t7dxrwf6l4m65qktfhtkf5wmq",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq9390mmghnrllntzmlkxlf0xh6dcwfn4r22mu",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqx2p90tdfy8wyapjrplykrwpyjjhcl8xuq73w",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqthkuvneyjnlr2hzp0gccq8dmw4fz4ad72wt4",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq0zchvq77pn7m802n2tvjdn5v2cf6lalurwf7",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq3446rvwrw98vt07lnhw83gfyc4mt24xwmska",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "300000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "300000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq42svpfejnfgwqn48ggwpl4nuwrc6wvyedtaa",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqeecduhem5cpm8kkqc36sz52vddlg5pafrp8w",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq63dg7mwpgynrrv847374m9adws30vd49m9y4",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqmfqeh5r8pmr9eltj4hdm5764dk898c3qhl87",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqmjk4lp0fkfeu3hgqn0fju7jzjf5f0xv5e9l6",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqu9qkfvjzqx2u5v4tefuwjdflkadcfq9vzd0m",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "45000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "45000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qqa6sqqn0j964vshey7z5hc7p5f28vrupraqma",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qq7u0md0pl6z7sr89fdmfhds85hj467jjjt0hp",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp8p9te523r8s4lx5rjnycntcut2pjgdxxm842",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp2f43vflevefn2y05jk9jefsd7xjsrs7zk5cn",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpwrsclwvmvvrtcsf45vjqhmkd0q89ltgpuf22",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpjy3x2peyvrjk5rkh2x2k3p07gkr3g2fsev30",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "100.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "100"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpjn3lflq0zg2thzrnsdyts6a3edu3g4x4kghf",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpj795h26s3fylv4tf74e050gjayahy5tknvx0",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpjls9r6wn9j2h4vyga4st3cqxptp7jgctkh65",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp4qsydz32tvfdcswz9pyl6w6uylj7nu3qyqg7",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp46g878lpm66dzafpdedv304sr3xkuf6xvnlt",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "1520.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "1520"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpcw7zsg3gxgvt623apjesplaemsl9r8qge06x",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpcm8lc36wk8mm57zsejww6ev7xv9zy7pnqkwj",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpcl8ycz9vr2dt70wvzpjzdltnx9amjr0l235c",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp62lzkk7kzxf8ha9xw968m647r6c74vclwewj",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "1.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "1"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qp6ecu7vkt4gqxvg228wask6pgp8yvu7qdanuu",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpu8ppkewlgxlx6es2k6n4l63ahplp4a8hagrv",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpuhs9g9zpjdsz4qt9nc0sr634wxzd6amrg2px",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qpagjxr7eydxzry4muzrx9zyaac3a6g9j6pdad",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "25000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "25000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzzye8r6azd0cclns6n8pd9yc8ryjz43xg2q7q",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzrnjqc7m82grxtxmnzdl27cddgpkg9g0yvsty",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qz9f3n9zcpymj7d8h6nzpkvyqhtzzz25d9x72x",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "100019851.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "100019851"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qz8gahc8majne247zed3x02qu75sgkhskzsgnc",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qztusk0g08vqngdxskspjzgp6thzvtj3mke2zk",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "5000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "5000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzj8y7qaf0zf4crx8xqgs3afpnhxl2zp63x6k6",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qznjwhemmjqkarg7sta5u74hwj4n63eqe2963c",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qz493ncxsqa902gwcx4sl6ttvt3cvdt9hjfjwz",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzktta666tr5lua5j4hu6c5zutx2xsd0uftk9j",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "3112226.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "3112226"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzhps2597fwmzwek2dzaeescet9kx322j55vz8",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qze3eqj8vec94skh0m0du9gx43nlux4daars2z",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qze723vxk3yp44ydr79xv7g2t2yvczvf9gsfaw",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qzu7f6v430xsedxczxl0thgzhqta5gqyvywsyg",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrzncl5atejy4gw7drgnw9rrdpg9l624cclra0",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrznmwm5zx77pqzswz9l3dw3vneznumhqxzc5w",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "1000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "1000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrxcq3qtxs3l04579tx3hfk7f20xr9npdrkum9",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "12000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "12000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrgqpupcshfd2ss2ylw5mwspzg7h2hd6xe9y2a",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrv9gh5vf6wne7jsc3uha7x4k7x6j6m29twqkl",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrvels309wh5xqq0ksxftj9zdvgp3p8wr9ssh2",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrvlq6tqkdlv5el80gy696wq7upz2akp4udv0j",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "2000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "2000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qr0z6pvdrx8aep35fx7je942wlhksytz9wgf6u",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qr0a4hec284h8x3mjfut9747vqhzt9w8e3wnmn",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qr3nnga5rcl9jp56nmn5z04quqwqf7c20dea7h",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrjqxvuegj7e0nmkcqjz3lswq67d3zyfaxzfzh",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "1000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "1000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrc5utq7pjlq34l590llx95d36n44judzzrpvw",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qrc4mwuch52h0udrdmfdkxwcechv3xfmtwq373",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qre4a9gnmrp8drz9rahj2x0aznmx769xfsc0qx",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qruju2frmgxq906tan520um72j2575zlwm7d5k",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyy5dcrt0h942us6x28sgerf98k559glsetqym",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qy9cktcwj0k6dl0j7jryg078ycsxz3xsukycs3",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "100000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "100000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qy8jwssntrkyuugk532mmvzfwxp0vwmvm65yaz",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyt55k85cegzr9c6z4j8pkuptaygda9hrhqnlr",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "85200000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "85200000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyd2nev0pv6mk88z8myzsj809m0c54p8ygys9w",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qydkrpkvk3h0snv2uqwsste89wdqszgf6834tg",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyd6zw038jmx637ja9s2hcf7znna4gza4695he",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qy5jganlwafz0dpx7wcf3mlm9sz8zpe7v9f3rh",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qy4k5uj29z8gjsca2e4elc4erqzm6fgny5g8k5",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyksumu6z2grtccep8ggg8h2wqprp8t99j2jhj",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyh2dsfcrpw9nd6z8p6gqmhhczy0cs4c9wyfgs",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qycuyhwc4y5dqsj3c2uzw0w4psm0ec6qdcxrds",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyefmm3s3kd89flpsp0504u02rx73p2j769arl",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qy6v3e86qdl5jp0xc62x5zzql45ad080a30j2y",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qyat5068rxvs4lm2qen59rsrxlze34p8jp2dxs",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9pc0lgasemk5yyg6ht4tj0w4e6ehtushpqk3q",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "20000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "20000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9rqz87wgegcsmn77s87q49ylvvtuq4gxhyxze",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9xw0yes8w8hxvccvf954cfx9e0qcyj9ydyasz",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "5600000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "5600000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q98xs58d0ntjp32ffeyy0pvgxdvl7530xfjhg2",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9gnesfgq6mvtwsyet7fsxvvux7y5u8ga9dw54",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9fyp2vjkuf5qcv8h0l260rhws2gpcn3l4h7ne",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9tvtatk9t2wk9av0hau7r8y7fhfz52jhjhjlc",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9v9zlgmmzupkkg3a2nptg9v47evl8f2j5v8se",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "73000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "73000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9d7q8pzyjvdrt5mthap5g5qzd4hu7yw48f24g",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9sr6ksc9yyupmwhvt5teytu4cfpa02vp067kx",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q94psl3wkumkg2d58gacns3e2nn4svmdqel4fm",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9m9nhxuc8r3vjv9gan4z89c0wuvt0yshd74p4",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1q9al7fp8ugg7d4jty6n78jkh0cjk9yn9c4fzyq",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "50000000.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "50000000"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxpwgk58l43rn96xrrycs9mz25cy2lve48mm5q",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxph56uc29x6etfg9jff77zkqzjy5r27vac9w4",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxr0fexlw433mdn2dqpxm5v43h30yg5crv7szr",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qx87jlxvmv7qmeq0j5vd284r8unmfjsms0e5r8",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxtyxppvuqx4kvq8nvggk3gwcs9p29htz9j7aw",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "500.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "500"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxshx99lghdhjumz2wz55frhumaw2c927tamef",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qx386xwa8vvrava9lkqlfpfjtz6yuf226ns8tw",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxjsxwq4ps7u7ncwt002vufn59tzaa5dhqpza3",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxjs8lam8p2vh7yq338n0udqpmglxxj6umqxc8",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qx4et6j5y0ydkspavt2hs3pt4mca3dhnqhs2h7",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    },
+    {
+      "delegation": {
+        "delegator_address": "osmo1qxk9797dktgmcadw9a5f25f7edhrzng86x9ugy",
+        "validator_address": "osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5",
+        "shares": "10.000000000000000000"
+      },
+      "balance": {
+        "denom": "uosmo",
+        "amount": "10"
+      }
+    }
+  ],
+  "pagination": {
+    "next_key": "FAG2GBY7c3T9hmsTZ0ktt3ZMAYY7FC66arMP+4Jpt4VpLsx30rmD5494",
+    "total": "11803"
+  }
+}
