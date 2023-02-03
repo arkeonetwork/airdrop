@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"strings"
 	"time"
 
@@ -38,6 +40,23 @@ type CosmosIndexer struct {
 	endHeight   int64
 }
 
+// a page of delegator/validator pairs with amounts for starting balances
+type DelegationPage struct {
+	DelegationResponses []DelegationResponse `json:"delegation_responses"`
+}
+
+type DelegationResponse struct {
+	Delegation struct {
+		DelegatorAddress string `json:"delegator_address"`
+		ValidatorAddress string `json:"validator_address"`
+		Shares           string `json:"shares"`
+	} `json:"delegation"`
+	Balance struct {
+		Denom  string `json:"denom"`
+		Amount int64  `json:"amount,string"`
+	} `json:"balance"`
+}
+
 func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	d, err := db.New(params.DB)
 	if err != nil {
@@ -55,6 +74,58 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	lcd := resty.New().SetTimeout(10 * time.Second).SetBaseURL(chain.LcdUrl)
 
 	return &CosmosIndexer{db: d, tm: tm, lcd: lcd, chain: chain, startHeight: params.StartHeight, endHeight: params.EndHeight}, nil
+}
+
+func (c *CosmosIndexer) IndexStartingBalances(dataDir string) error {
+	dir, err := os.ReadDir(dataDir)
+	if err != nil {
+		return errors.Wrapf(err, "error reading dir %s", dataDir)
+	}
+	for _, f := range dir {
+		if f.IsDir() {
+			log.Infof("%s is a directory, skipping", f.Name())
+		}
+		if !strings.HasSuffix(f.Name(), ".json") {
+			log.Infof("%s is not a json file, skipping", f.Name())
+		}
+		if !strings.HasPrefix(f.Name(), "page") {
+			log.Infof("%s is not a page file, skipping", f.Name())
+		}
+
+		log.Infof("reading file %s", f.Name())
+		raw, err := os.ReadFile(fmt.Sprintf("%s/%s", dataDir, f.Name()))
+		if err != nil {
+			return errors.Wrapf(err, "error reading file %s", f.Name())
+		}
+
+		page := DelegationPage{}
+		if err = json.Unmarshal(raw, &page); err != nil {
+			return errors.Wrapf(err, "error unmarshalling file %s", f.Name())
+		}
+		log.Debug(page)
+
+		events := make([]*types.CosmosStakingEvent, 0, len(page.DelegationResponses))
+
+		for _, d := range page.DelegationResponses {
+			value := utils.FromBaseUnits(d.Balance.Amount, c.chain.Decimals)
+			event := &types.CosmosStakingEvent{
+				Chain:       c.chain.Name,
+				EventType:   "initial",
+				Delegator:   d.Delegation.DelegatorAddress,
+				Validator:   d.Delegation.ValidatorAddress,
+				Value:       value,
+				BlockNumber: c.chain.SnapshotStartBlock - 1,
+				TxHash:      "00000000000000000000000000000000",
+				EventIndex:  0,
+			}
+			events = append(events, event)
+		}
+		if err = c.db.InsertStakingEvents(events); err != nil {
+			return errors.Wrapf(err, "error inserting staking events for page %s", f.Name())
+		}
+	}
+
+	return nil
 }
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
@@ -281,71 +352,3 @@ func parseAmount(in string, decimals uint8) (asset string, amount float64, err e
 	amount = utils.BigIntToFloat(iamt, uint8(decimals))
 	return
 }
-
-/*
-func (c *CosmosIndexer) indexLPOld(height int64) error {
-	log := log.WithField("height", fmt.Sprintf("%d", height))
-	var (
-		ctx = context.Background()
-		// txSearchResults []*coretypes.ResultTx
-		// txSearchErr     error
-	)
-
-	// end block events have LP events for chains other than THOR
-	blockResults, err := c.tm.BlockResults(ctx, &height)
-	if err != nil {
-		return errors.Wrapf(err, "error reading search results height %d", height)
-	}
-	for _, evt := range blockResults.EndBlockEvents {
-		if evt.Type == "add_liquidity" || evt.Type == "withdraw" ||
-			(evt.Type == "message" && string(evt.Attributes[0].Key) == "action" && string(evt.Attributes[0].Value) == "deposit") {
-			log.Infof("%s event", evt.Type)
-			log.Infof("FOREIGN %s event %s", evt.Type, "<unknown>")
-			for _, attr := range evt.Attributes {
-				log.Infof("message attr %s:%s", attr.Key, attr.Value)
-			}
-		}
-		// log.Infof("end block event %s", evt.Type)
-	}
-
-	// native RUNE LP events are tx events with a message event and action attribute of deposit
-	var (
-		page            = 1
-		perPage         = 100
-		query           = fmt.Sprintf("tx.height=%d AND message.action='deposit'", height) //  AND add_liquidity.pool='AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E'
-		txSearchResults = make([]*coretypes.ResultTx, 0, 128)
-		txSearchErr     error
-	)
-	for {
-		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
-		if err != nil {
-			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
-			break
-		}
-
-		txSearchResults = append(txSearchResults, searchResults.Txs...)
-		if len(txSearchResults) == searchResults.TotalCount {
-			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
-			break
-		}
-		page++
-	}
-
-	if txSearchErr != nil {
-		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
-	}
-
-	for _, sr := range txSearchResults {
-		txhash := hashTx(sr.Tx)
-		for _, evt := range sr.TxResult.Events {
-			if evt.Type == "add_liquidity" || evt.Type == "withdraw" {
-				log.Infof("NATIVE %s event %s", evt.Type, txhash)
-				for _, attr := range evt.Attributes {
-					log.Infof("attr %s:%s", attr.Key, attr.Value)
-				}
-			}
-		}
-	}
-	return nil
-}
-*/

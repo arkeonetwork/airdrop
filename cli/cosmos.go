@@ -27,6 +27,12 @@ var (
 		Run:   runThorLPIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
+	indexStartingBalancesCmd = &cobra.Command{ // TODO rename THOR
+		Use:   "starting-balances [chain] [data-directory]",
+		Short: "initialize delegate balances from JSON export",
+		Run:   runStartingBalancesIndexer,
+		Args:  cobra.ExactValidArgs(2),
+	}
 )
 
 func runDelegatorsIndexer(cmd *cobra.Command, args []string) {
@@ -75,6 +81,28 @@ func runThorLPIndexer(cmd *cobra.Command, args []string) {
 
 	if err = indxr.IndexThorLP(poolName); err != nil {
 		cmd.PrintErrf("error indexing LP: %+v", err)
+	}
+}
+
+func runStartingBalancesIndexer(cmd *cobra.Command, args []string) {
+	flags := cmd.InheritedFlags()
+	envPath, _ := flags.GetString("env")
+	c := utils.ReadDBConfig(envPath)
+	if c == nil {
+		cmd.PrintErrf("no config for path %s", envPath)
+		return
+	}
+
+	chain := args[0]
+	dataDir := args[1]
+	params := indexer.CosmosIndexerParams{Chain: chain, DB: *c}
+	indxr, err := indexer.NewCosmosIndexer(params)
+	if err != nil {
+		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
+		return
+	}
+	if err = indxr.IndexStartingBalances(dataDir); err != nil {
+		cmd.PrintErrf("error indexing validators: %+v", err)
 	}
 }
 

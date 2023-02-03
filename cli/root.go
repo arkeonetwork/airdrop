@@ -40,6 +40,7 @@ func init() {
 	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
 	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
 	indexCosmosCmd.AddCommand(indexOsmoLPCmd)
+	indexCosmosCmd.AddCommand(indexStartingBalancesCmd)
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 }
