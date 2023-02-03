@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/indexer"
 	"github.com/ArkeoNetwork/common/utils"
@@ -94,13 +95,14 @@ func runStartingBalancesIndexer(cmd *cobra.Command, args []string) {
 	}
 
 	chain := args[0]
-	dataDir := args[1]
+	baseDataDir := args[1]
 	params := indexer.CosmosIndexerParams{Chain: chain, DB: *c}
 	indxr, err := indexer.NewCosmosIndexer(params)
 	if err != nil {
 		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
 		return
 	}
+	dataDir := fmt.Sprintf("%s/%s", baseDataDir, strings.ToLower(chain))
 	if err = indxr.IndexStartingBalances(dataDir); err != nil {
 		cmd.PrintErrf("error indexing validators: %+v", err)
 	}

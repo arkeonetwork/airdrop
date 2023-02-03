@@ -87,9 +87,11 @@ func (c *CosmosIndexer) IndexStartingBalances(dataDir string) error {
 		}
 		if !strings.HasSuffix(f.Name(), ".json") {
 			log.Infof("%s is not a json file, skipping", f.Name())
+			continue
 		}
 		if !strings.HasPrefix(f.Name(), "page") {
 			log.Infof("%s is not a page file, skipping", f.Name())
+			continue
 		}
 
 		log.Infof("reading file %s", f.Name())
