@@ -60,8 +60,12 @@ func (c *CosmosIndexer) IndexThorLP(poolName string) error {
 	blocksPerDay := int64(6 * 60 * 24)
 	// get up to an extra day of blocks, trim if post cutoff
 	for i := startHeight; i <= endHeight+blocksPerDay; i += blocksPerDay {
-		if err := c.indexThorLP(i, poolName); err != nil {
+		if _, err := c.indexThorLP(i, poolName); err != nil {
+			if err.Error() == "no pool" {
+				break
+			}
 			log.Errorf("error indexing delegations at height %d: %+v", i, err)
+			break
 		}
 		log.Infof("indexed %s lp block %d", poolName, i)
 	}
@@ -69,16 +73,21 @@ func (c *CosmosIndexer) IndexThorLP(poolName string) error {
 	return nil
 }
 
-func (c *CosmosIndexer) indexThorLP(height int64, poolName string) error {
+func (c *CosmosIndexer) indexThorLP(height int64, poolName string) ([]types.ThorLPBalanceEvent, error) {
 	pool, err := c.findThorPoolByHeight(height, poolName)
 	if err != nil {
-		return errors.Wrapf(err, "error reading pool at height %d for %s", height, poolName)
+		return nil, errors.Wrapf(err, "error reading pool at height %d for %s", height, poolName)
+	}
+
+	if pool == nil {
+		log.Infof("pool %s not found at height %d", poolName, height)
+		return nil, fmt.Errorf("no pool")
 	}
 
 	totalUnits := pool.PoolUnits
 	lpBalances, err := c.findThorLpsByHeight(height, poolName)
 	if err != nil {
-		return errors.Wrapf(err, "error reading balances at height %d for %s", height, poolName)
+		return nil, errors.Wrapf(err, "error reading balances at height %d for %s", height, poolName)
 	}
 
 	batch := make([]types.ThorLPBalanceEvent, 0, len(lpBalances))
@@ -99,9 +108,9 @@ func (c *CosmosIndexer) indexThorLP(height int64, poolName string) error {
 		)
 	}
 	if err = c.db.InsertThorLPBalanceEvent(batch); err != nil {
-		return errors.Wrapf(err, "error inserting thor lp balances at height %d for %s", height, poolName)
+		return nil, errors.Wrapf(err, "error inserting thor lp balances at height %d for %s", height, poolName)
 	}
-	return nil
+	return batch, nil
 }
 
 // find lp balances at a given height
@@ -123,19 +132,24 @@ func (c *CosmosIndexer) findThorLpsByHeight(height int64, poolName string) ([]Th
 	return results, nil
 }
 
-func (c *CosmosIndexer) findThorPoolByHeight(height int64, poolName string) (ThorPool, error) {
+func (c *CosmosIndexer) findThorPoolByHeight(height int64, poolName string) (*ThorPool, error) {
 	pool := ThorPool{}
 	path := fmt.Sprintf("/thorchain/pool/%s", poolName)
 	res, err := c.lcd.R().SetQueryParam("height", fmt.Sprintf("%d", height)).Get(path)
 	if err != nil {
-		return pool, errors.Wrapf(err, "error reading pool at height %d, pool %s", height, poolName)
+		return nil, errors.Wrapf(err, "error reading pool at height %d, pool %s", height, poolName)
 	}
-	if res.StatusCode() != 200 {
-		return pool, fmt.Errorf("error reading pool at height %d, pool %s, status code %d", height, poolName, res.StatusCode())
+	switch res.StatusCode() {
+	case 200:
+	case 404:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("error reading pool at height %d, pool %s, status code %d", height, poolName, res.StatusCode())
 	}
 
 	if err = json.Unmarshal(res.Body(), &pool); err != nil {
-		return pool, errors.Wrapf(err, "error unmarshalling pool at height %d, pool %s", height, poolName)
+		return nil, errors.Wrapf(err, "error unmarshalling pool at height %d, pool %s", height, poolName)
 	}
-	return pool, nil
+
+	return &pool, nil
 }

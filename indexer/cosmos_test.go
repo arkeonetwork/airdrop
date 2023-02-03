@@ -47,8 +47,17 @@ func TestIndexThorLP(t *testing.T) {
 		t.FailNow()
 	}
 	assert.NotNil(t, indxr)
-	err = indxr.indexThorLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
+	recs, err := indxr.indexThorLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
+	_ = recs
 	assert.Nil(t, err)
+
+	height = 999286118
+	recs, err = indxr.indexThorLP(height, "ETH.FOX-0XC770EEFAD204B5180DF6A14EE197D99D808EE52D")
+	_ = recs
+	if assert.NotNil(t, err) {
+		assert.Equal(t, "no pool", err.Error())
+	}
+
 }
 
 func TestIndexOsmoLP(t *testing.T) {
