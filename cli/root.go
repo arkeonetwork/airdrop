@@ -43,6 +43,7 @@ func init() {
 	indexCosmosCmd.AddCommand(indexStartingBalancesCmd)
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(exportDelegatesCmd)
 }
 
 func Execute() {
