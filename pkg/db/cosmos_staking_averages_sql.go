@@ -7,7 +7,8 @@ const (
 				chains.name,
 				$2 as validator,
 				snapshot_start_block,
-				snapshot_end_block
+				snapshot_end_block,
+				1 as min_balance
 			from
 				chains
 			where
@@ -183,7 +184,7 @@ const (
 					from
 						params
 				)
-			) > 400
+			) > (select min_balance from params)
 		order by
 			avg_hold desc
 	`
