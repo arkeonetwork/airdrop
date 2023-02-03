@@ -9,7 +9,7 @@ with params as (
   where
     chains.name = 'OSMO'
 ),
-    staking_events as (
+staking_events as (
 select
     id,
     txhash,

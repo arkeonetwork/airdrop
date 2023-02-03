@@ -44,6 +44,7 @@ func init() {
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 	rootCmd.AddCommand(exportDelegatesCmd)
+	rootCmd.AddCommand(exportThorchainLPCmd)
 }
 
 func Execute() {
