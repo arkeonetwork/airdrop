@@ -25,3 +25,31 @@ func (d *AirdropDB) FindAveragedBalances(chain, tokenSymbol string) ([]*Averaged
 	}
 	return results, nil
 }
+
+func (d *AirdropDB) FindAveragedDelegationBalances(chain, validator string) ([]*AveragedHolding, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error obtaining db connection")
+	}
+
+	results := make([]*AveragedHolding, 0, 128)
+	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindCosmosStakingAveragedBalances, chain, validator); err != nil {
+		return nil, errors.Wrapf(err, "error querying")
+	}
+	return results, nil
+}
+
+func (d *AirdropDB) FindAveragedThorLPBalances(pool string) ([]*AveragedHolding, error) {
+	conn, err := d.getConnection()
+	defer conn.Release()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error obtaining db connection")
+	}
+
+	results := make([]*AveragedHolding, 0, 128)
+	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindAveragedThorLPBalances, pool); err != nil {
+		return nil, errors.Wrapf(err, "error querying")
+	}
+	return results, nil
+}
