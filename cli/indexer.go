@@ -19,22 +19,10 @@ type Config struct {
 }
 
 var (
-	log         = logging.WithoutFields()
-	configNames = []string{
-		"SNAPSHOT_START",
-		"SNAPSHOT_END",
-		"DB_HOST",
-		"DB_PORT",
-		"DB_USER",
-		"DB_PASS",
-		"DB_NAME",
-		"DB_SSL_MODE",
-		"DB_POOL_MAX_CONNS",
-		"DB_POOL_MIN_CONNS",
-	}
+	log = logging.WithoutFields()
 )
 
-func runIndexer(cmd *cobra.Command, args []string) {
+func runEthIndexer(cmd *cobra.Command, args []string) {
 	log.Info("starting data generation process")
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")

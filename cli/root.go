@@ -21,10 +21,10 @@ var (
 		},
 	}
 
-	indexCmd = &cobra.Command{
+	indexEthCmd = &cobra.Command{
 		Use:   "index-eth",
 		Short: "gather eth chain data store in our db",
-		Run:   runIndexer,
+		Run:   runEthIndexer,
 	}
 
 	indexCosmosCmd = &cobra.Command{
@@ -36,11 +36,11 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(indexCmd)
+	rootCmd.AddCommand(indexEthCmd)
 	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
 	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
 	indexCosmosCmd.AddCommand(indexOsmoLPCmd)
-	indexCosmosCmd.AddCommand(indexStartingBalancesCmd)
+	indexCosmosCmd.AddCommand(indexStartingDelegateBalancesCmd)
 	rootCmd.AddCommand(indexCosmosCmd)
 	rootCmd.AddCommand(exportCmd)
 	rootCmd.AddCommand(exportDelegatesCmd)

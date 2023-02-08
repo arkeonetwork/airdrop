@@ -10,29 +10,29 @@ import (
 )
 
 var (
+	indexStartingDelegateBalancesCmd = &cobra.Command{
+		Use:   "starting-delegations [chain] [data-directory]",
+		Short: "initialize delegate balances from JSON export",
+		Run:   runStartingDelegationsIndexer,
+		Args:  cobra.ExactValidArgs(2),
+	}
 	indexDelegatorsCmd = &cobra.Command{
 		Use:   "delegators [chain]",
 		Short: "gather cosmos-sdk chain data store in our db",
 		Run:   runDelegatorsIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
-	indexOsmoLPCmd = &cobra.Command{ // TODO rename THOR
+	indexOsmoLPCmd = &cobra.Command{
 		Use:   "osmo-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
 		Run:   runOsmoLPIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
-	indexThorchainLPCmd = &cobra.Command{ // TODO rename THOR
+	indexThorchainLPCmd = &cobra.Command{
 		Use:   "thor-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
 		Run:   runThorLPIndexer,
 		Args:  cobra.ExactValidArgs(1),
-	}
-	indexStartingBalancesCmd = &cobra.Command{ // TODO rename THOR
-		Use:   "starting-balances [chain] [data-directory]",
-		Short: "initialize delegate balances from JSON export",
-		Run:   runStartingBalancesIndexer,
-		Args:  cobra.ExactValidArgs(2),
 	}
 )
 
@@ -61,6 +61,7 @@ func runDelegatorsIndexer(cmd *cobra.Command, args []string) {
 }
 
 func runThorSaversIndexer(cmd *cobra.Command, args []string) {
+	// TODO - this is identical to thor-lp with exception of the endpoint
 }
 
 func runThorLPIndexer(cmd *cobra.Command, args []string) {
@@ -85,7 +86,7 @@ func runThorLPIndexer(cmd *cobra.Command, args []string) {
 	}
 }
 
-func runStartingBalancesIndexer(cmd *cobra.Command, args []string) {
+func runStartingDelegationsIndexer(cmd *cobra.Command, args []string) {
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")
 	c := utils.ReadDBConfig(envPath)
