@@ -28,6 +28,7 @@ func init() {
 	exportCmd.Flags().StringP("output", "f", "", "csv output file, default /tmp/airdrop_{chain}_{token}.csv")
 }
 
+// export block weighted token averages for given eth chain and token
 func runExportEthTokenAvg(cmd *cobra.Command, args []string) {
 	log.Infof("starting export process for %s, %s", args[0], args[1])
 	flags := cmd.InheritedFlags()

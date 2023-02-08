@@ -22,6 +22,7 @@ var (
 	log = logging.WithoutFields()
 )
 
+// index ethereum things
 func runEthIndexer(cmd *cobra.Command, args []string) {
 	log.Info("starting data generation process")
 	flags := cmd.InheritedFlags()

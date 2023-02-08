@@ -20,6 +20,7 @@ var (
 	}
 )
 
+// export block weighted delegation averages for given cosmos chain and validator
 func runExportDelegatesAvg(cmd *cobra.Command, args []string) {
 	log.Infof("starting delegate export process for %s, %s", args[0], args[1])
 	flags := cmd.InheritedFlags()

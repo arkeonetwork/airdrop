@@ -29,6 +29,7 @@ func NewIndexer(params IndexerAppParams) *IndexerApp {
 	return &IndexerApp{params: params, db: d}
 }
 
+// index transfers, staking rewards, hedgeys
 func (app *IndexerApp) Start() {
 	log.Info("starting indexing transfers")
 
@@ -50,5 +51,4 @@ func (app *IndexerApp) Start() {
 	if err != nil {
 		panic(fmt.Sprintf("error indexing hedgeys: %+v", err))
 	}
-
 }

@@ -20,6 +20,7 @@ var (
 	}
 )
 
+// export thorchain lp data for a given pool
 func runExportThorchainLPAvg(cmd *cobra.Command, args []string) {
 	log.Infof("starting ThorchainLP export process for %s", args[0])
 	flags := cmd.InheritedFlags()
