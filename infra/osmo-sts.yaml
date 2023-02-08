@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: osmo-sts
+  namespace: foundation
+spec:
+  selector:
+    matchLabels:
+      app: osmosisd
+  serviceName: "osmo-service"
+  updateStrategy:
+    type: OnDelete
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: osmosisd
+    spec:
+      containers:
+        - name: osmosisd
+          image: ghcr.io/akash-network/cosmos-omnibus:v0.3.22-osmosis-v14.0.0
+          env:
+            - name: MONIKER
+              value: "fox.foundation"
+            - name: CHAIN_JSON
+              value: "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/chain.json"
+            - name: P2P_POLKACHU
+              value: "1"
+            - name: SNAPSHOT_QUICKSYNC
+              value: "1"
+            - name: SNAPSHOT_URL
+              value: "https://dl2.quicksync.io/osmosis-1-default.20230208.0810.tar.lz4"
+            - name: SNAPSHOT_DATA_PATH
+              value: "data"
+            - name: SNAPSHOT_WASM_PATH
+              value: "wasm"
+            - name: "OSMOSISD_API_ENABLE"
+              value: "true"
+            - name: "MAX_NUM_OUTBOUND_PEERS"
+              value: "100"
+          resources:
+            requests:
+              cpu: 2000m
+              memory: 10Gi
+            limits:
+              cpu: 8000m
+              memory: 32Gi
+          volumeMounts:
+            - mountPath: "/root/.osmosisd"
+              name: osmosisd-volume-claim
+          ports:
+            - containerPort: 26656
+              name: p2p
+            - containerPort: 26657
+              name: rpc
+            - containerPort: 1317
+              name: lcd
+  volumeClaimTemplates:
+    - metadata:
+        name: osmosisd-volume-claim
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 3Ti
+        storageClassName: gp2
