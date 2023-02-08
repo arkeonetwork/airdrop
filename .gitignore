@@ -21,3 +21,4 @@
 .vscode/
 **.DS_Store
 cmd/arkeodrop/__debug_bin
+infra/node-data/
