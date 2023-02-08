@@ -9,11 +9,12 @@ spec:
       image: ghcr.io/akash-network/cosmos-omnibus:v0.3.22-osmosis-v14.0.0
       imagePullPolicy: Always
       volumeMounts:
-        - name: osmosisd-volume-claim
+        - name: osmosisd
           mountPath: "/root/.osmosisd"
       command:
         - osmosisd
-        - export-derive-balances
+        - export
+        # - export-derive-balances
         - "--height"
         - "7117606"
         - "2>"
@@ -26,6 +27,6 @@ spec:
           memory: "10Gi"
           cpu: "4000m"
   volumes:
-    - name: data
+    - name: osmosisd
       persistentVolumeClaim:
-        claimName: osmosisd-volume-claim
+        claimName: osmosisd-volume-claim-osmo-sts-0
