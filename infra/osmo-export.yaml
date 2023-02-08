@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: osmo-export
+  namespace: foundation
+spec:
+  containers:
+    - name: osmo-export
+      image: ghcr.io/akash-network/cosmos-omnibus:v0.3.22-osmosis-v14.0.0
+      imagePullPolicy: Always
+      volumeMounts:
+        - name: osmosisd-volume-claim
+          mountPath: "/root/.osmosisd"
+      command:
+        - osmosisd
+        - export-derive-balances
+        - "--height"
+        - "7117606"
+        - "2>"
+        - "/root/.osmosisd/state-export.json"
+      resources:
+        limits:
+          memory: "32Gi"
+          cpu: "8000m"
+        requests:
+          memory: "10Gi"
+          cpu: "4000m"
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: osmosisd-volume-claim

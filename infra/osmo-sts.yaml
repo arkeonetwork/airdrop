@@ -36,6 +36,8 @@ spec:
               value: "wasm"
             - name: "OSMOSISD_API_ENABLE"
               value: "true"
+            - name: "MAX_NUM_OUTBOUND_PEERS"
+              value: "100"
           resources:
             requests:
               cpu: 2000m
