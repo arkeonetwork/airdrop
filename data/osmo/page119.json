@@ -1,0 +1,10 @@
+{
+  "delegation_responses": [
+    {"delegation":{"delegator_address":"osmo1llaacy00z2x5wc3u4sp4fnhp7gveyv46pvnv0v","validator_address":"osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5","shares":"10.000000000000000000"},"balance":{"denom":"uosmo","amount":"10"}},
+    {"delegation":{"delegator_address":"osmo1ll7gclkz0nsqxzhtsugd3ufuy8nwq5e0ess4f5","validator_address":"osmovaloper1xf9zpq5kpxks49cg606tzd8qstaykxgt2vs0d5","shares":"10.000000000000000000"},"balance":{"denom":"uosmo","amount":"10"}}
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "0"
+  }
+}
