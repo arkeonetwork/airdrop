@@ -26,12 +26,19 @@ var (
 		Short: "gather chain data store in our db",
 		Run:   runIndexer,
 	}
+
+	snapshotIndexCmd = &cobra.Command{
+		Use:   "snapshot-index",
+		Short: "gather snapshot data store in our db",
+		Run:   runSnapshotIndexer,
+	}
 )
 
 func init() {
 	rootCmd.PersistentFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(indexCmd)
+	rootCmd.AddCommand(snapshotIndexCmd)
 	rootCmd.AddCommand(exportCmd)
 }
 
