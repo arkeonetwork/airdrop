@@ -21,10 +21,15 @@ var (
 		},
 	}
 
-	indexCmd = &cobra.Command{
-		Use:   "index",
-		Short: "gather chain data store in our db",
-		Run:   runIndexer,
+	indexEthCmd = &cobra.Command{
+		Use:   "index-eth",
+		Short: "gather eth chain data store in our db",
+		Run:   runEthIndexer,
+	}
+
+	indexCosmosCmd = &cobra.Command{
+		Use:   "index-cosmos",
+		Short: "cosmos-sdk indexing",
 	}
 
 	snapshotIndexCmd = &cobra.Command{
@@ -37,9 +42,20 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringP("env", "e", "docker/dev/docker.env", "env file to source")
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(indexCmd)
+	// <<<<<<< HEAD
+	// rootCmd.AddCommand(indexCmd)
 	rootCmd.AddCommand(snapshotIndexCmd)
+	// =======
+	rootCmd.AddCommand(indexEthCmd)
+	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
+	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
+	indexCosmosCmd.AddCommand(indexOsmoLPCmd)
+	indexCosmosCmd.AddCommand(indexStartingDelegateBalancesCmd)
+	rootCmd.AddCommand(indexCosmosCmd)
+	// >>>>>>> 845abdb (cosmos staking/lp)
 	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(exportDelegatesCmd)
+	rootCmd.AddCommand(exportThorchainLPCmd)
 }
 
 func Execute() {
