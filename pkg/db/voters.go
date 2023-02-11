@@ -34,17 +34,10 @@ func (d *AirdropDB) InsertVoters(voters []*types.SnapshotVoter) error {
 	}
 	batch := &pgx.Batch{}
 	for _, voter := range voters {
-		addressAlreadyExists, err := d.HasAddressParticipatedInProposal(voter.Address)
-		if err != nil {
-			return errors.Wrapf(err, "error finding voter")
-		}	
-		// this condiotion here is to avoid inserting duplicated values to db
-		if addressAlreadyExists == false {
-			batch.Queue(
-				sqlInsertVoters,
-				strings.ToLower(voter.Address),
-			)
-		}
+		batch.Queue(
+			sqlInsertVoters,
+			strings.ToLower(voter.Address),
+		)
 	}
 	results := conn.SendBatch(context.Background(), batch)
 	err = results.Close()
