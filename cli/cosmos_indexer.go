@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/indexer"
@@ -26,7 +27,7 @@ var (
 		Use:   "osmo-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
 		Run:   runOsmoLPIndexer,
-		Args:  cobra.ExactValidArgs(1),
+		Args:  cobra.ExactValidArgs(2),
 	}
 	indexThorchainLPCmd = &cobra.Command{
 		Use:   "thor-lp [pool]",
@@ -104,7 +105,7 @@ func runStartingDelegationsIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 	dataDir := fmt.Sprintf("%s/%s", baseDataDir, strings.ToLower(chain))
-	if err = indxr.IndexStartingBalances(dataDir); err != nil {
+	if err = indxr.IndexStartingDelegations(dataDir); err != nil {
 		cmd.PrintErrf("error indexing validators: %+v", err)
 	}
 }
@@ -118,15 +119,23 @@ func runOsmoLPIndexer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	poolName := args[0]
-	params := indexer.CosmosIndexerParams{Chain: "OSMO", DB: *c}
+	sheight := args[0]
+	height, err := strconv.ParseInt(sheight, 10, 64)
+	if err != nil {
+		cmd.PrintErrf("error parsing height %s: %+v", sheight, err)
+		return
+	}
+
+	baseDataDir := args[1]
+	params := indexer.CosmosIndexerParams{Chain: "osmo", DB: *c}
 	indxr, err := indexer.NewCosmosIndexer(params)
 	if err != nil {
 		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
 		return
 	}
+	dataDir := fmt.Sprintf("%s/osmo", baseDataDir)
 
-	if err = indxr.IndexOsmoLP(poolName); err != nil {
+	if err = indxr.IndexOsmoLP(height, dataDir); err != nil {
 		cmd.PrintErrf("error indexing LP: %+v", err)
 	}
 }

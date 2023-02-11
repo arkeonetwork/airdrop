@@ -72,3 +72,9 @@ type ThorLPBalanceEvent struct {
 	BalanceRune   float64 `db:"balance_rune"`
 	BalanceAsset  float64 `db:"balance_asset"`
 }
+
+type OsmoLP struct {
+	BlockNumber int64   `db:"block_number"`
+	Account     string  `db:"account"`
+	QtyOsmo     float64 `db:"qty_osmo"`
+}

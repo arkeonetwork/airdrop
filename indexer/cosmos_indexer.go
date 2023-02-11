@@ -77,7 +77,7 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 }
 
 // reads a collection of pageN.json files from the dataDir and inserts them into the db
-func (c *CosmosIndexer) IndexStartingBalances(dataDir string) error {
+func (c *CosmosIndexer) IndexStartingDelegations(dataDir string) error {
 	dir, err := os.ReadDir(dataDir)
 	if err != nil {
 		return errors.Wrapf(err, "error reading dir %s", dataDir)
