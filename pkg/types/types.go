@@ -45,3 +45,7 @@ type StakingEvent struct {
 	BlockNumber     uint64  `db:"block_number"`
 	Chain           string  `db:"chain"`
 }
+
+type SnapshotVoter struct {
+	Address string `db:"address"`
+}

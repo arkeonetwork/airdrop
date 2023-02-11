@@ -18,10 +18,6 @@ type SnapshotIndexerApp struct {
 	db     *db.AirdropDB
 }
 
-type SnapshotProposalVoter struct {
-	address string
-}
-
 var log = logging.WithoutFields()
 
 func NewSnapshotIndexer(params SnapshotIndexerAppParams) *SnapshotIndexerApp {
@@ -33,21 +29,13 @@ func NewSnapshotIndexer(params SnapshotIndexerAppParams) *SnapshotIndexerApp {
 }
 
 func (app *SnapshotIndexerApp) Start() {
-	log.Info("starting indexing snapshot data")
-	err := app.IndexSnapshotData()
-	if err != nil {
-		panic(fmt.Sprintf("error indexing snapshot data: %+v", err))
-	}
-	log.Info("finished indexing snapshot data")
-}
-
-func (app *SnapshotIndexerApp) IndexSnapshotData() error {
 	voters, err := app.GetSnapshotProposalVoters()
 	if err != nil {
 		panic(fmt.Sprintf("error getting snapshot proposal voters: %+v", err))
 	}
-	// app.db.saveVoters(voters)
-	log.Info(voters)
-	return nil
+	err = app.db.InsertVoters(voters)
+	if err != nil {
+		panic(fmt.Sprintf("error inserting snapshot proposal voters: %+v", err))
+	}
 }
 
