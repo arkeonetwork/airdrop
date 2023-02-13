@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/hasura/go-graphql-client v0.8.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -21,6 +22,8 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.12.0 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
+	github.com/klauspost/compress v1.15.15 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 require (
