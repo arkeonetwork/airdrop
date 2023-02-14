@@ -94,7 +94,5 @@ require (
 	gotest.tools v2.2.0+incompatible
 )
 
-replace (
-	github.com/ArkeoNetwork/common => /Users/adamsamere/chaintech/oss/arkeo/common
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-)
+// github.com/ArkeoNetwork/common => /Users/adamsamere/chaintech/oss/arkeo/common
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

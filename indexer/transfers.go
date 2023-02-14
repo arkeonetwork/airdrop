@@ -15,7 +15,7 @@ import (
 
 func (app *IndexerApp) IndexTransfers() error {
 	// find all chains we care about
-	chains, err := app.db.FindAllChains()
+	chains, err := app.db.FindAllChains() // TODO - find only eth chains
 	if err != nil {
 		return errors.Wrap(err, "unbale to find chains for tokens")
 	}

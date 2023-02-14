@@ -1,0 +1,22 @@
+FROM golang:1.19-buster as builder
+ARG GITREF=main
+
+RUN apt update && apt upgrade -y
+
+WORKDIR /root
+
+RUN git clone --depth 2 --branch $GITREF https://github.com/arkeonetwork/airdrop.git
+WORKDIR /root/airdrop
+RUN make install
+
+FROM ubuntu:kinetic
+
+WORKDIR /usr/local/bin
+COPY --from=builder /root/go/bin/arkeodrop .
+
+WORKDIR /root
+
+RUN apt update && apt upgrade -y
+RUN apt install -y redis postgresql-client curl wget jq htop vim
+
+COPY ./infra/scripts ./scripts
