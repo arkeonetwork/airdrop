@@ -25,11 +25,8 @@ import (
 )
 
 type CosmosIndexerParams struct {
-	DB             arkutils.DBConfig
-	Chain          string
-	TendermintHost string
-	StartHeight    int64
-	EndHeight      int64
+	DB    arkutils.DBConfig
+	Chain string
 }
 
 type CosmosIndexer struct {
@@ -78,13 +75,14 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 		return nil, errors.Wrapf(err, "error finding chain %s", params.Chain)
 	}
 
+	log.Infof("connecting to tendermint node at %s", chain.RpcUrl)
 	tm, err := arkutils.NewTendermintClient(chain.RpcUrl)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", params.TendermintHost)
+		return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", chain.RpcUrl)
 	}
 	lcd := resty.New().SetTimeout(10 * time.Second).SetBaseURL(chain.LcdUrl)
 
-	return &CosmosIndexer{db: d, tm: tm, lcd: lcd, chain: chain, startHeight: params.StartHeight, endHeight: params.EndHeight}, nil
+	return &CosmosIndexer{db: d, tm: tm, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
 }
 
 func (c *CosmosIndexer) IndexDelegationsFromStateExport(dataDir, chain string, height int64) error {
