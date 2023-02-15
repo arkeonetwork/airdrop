@@ -48,6 +48,7 @@ func New(config utils.DBConfig) (*AirdropDB, error) {
 		return nil, errors.Wrapf(err, "error parsing url to config from: \"%s\"", url)
 	}
 
+	log.Infof("creating postgres pool for user %s db %s on %s:%d", config.DBUser, config.DBName, config.DBHost, config.DBPort)
 	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error connecting to db")
