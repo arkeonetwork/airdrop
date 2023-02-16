@@ -16,13 +16,13 @@ var (
 		Use:   "export-delegates [chain] [validator address]",
 		Short: "export aggregate delegate data",
 		Run:   runExportDelegatesAvg,
-		Args:  cobra.ExactValidArgs(2),
+		Args:  cobra.ExactValidArgs(1),
 	}
 )
 
 // export block weighted delegation averages for given cosmos chain and validator
 func runExportDelegatesAvg(cmd *cobra.Command, args []string) {
-	log.Infof("starting delegate export process for %s, %s", args[0], args[1])
+	log.Infof("starting delegate export process for %s", args[0])
 	flags := cmd.InheritedFlags()
 	envPath, _ := flags.GetString("env")
 	c := utils.ReadDBConfig(envPath)
@@ -33,26 +33,26 @@ func runExportDelegatesAvg(cmd *cobra.Command, args []string) {
 	flags = cmd.Flags()
 	fileName, _ := flags.GetString("output")
 	if fileName == "" {
-		fileName = fmt.Sprintf("/tmp/airdrop_%s_delegates_%s.csv", args[0], args[1])
+		fileName = fmt.Sprintf("/tmp/airdrop_%s_delegates.csv", args[0])
 	}
 
-	err := exportWeightedDelegationAvgs(*c, args[0], args[1], fileName)
+	err := exportWeightedDelegationAvgs(*c, args[0], fileName)
 	if err != nil {
 		log.Errorf("error exporting: %+v", err)
 	}
 }
 
-func exportWeightedDelegationAvgs(dbConfig utils.DBConfig, chain, validator, fileName string) error {
+func exportWeightedDelegationAvgs(dbConfig utils.DBConfig, chain, fileName string) error {
 	d, err := db.New(dbConfig)
 	if err != nil {
 		return errors.Wrapf(err, "error connecting to the db")
 	}
 
-	avgs, err := d.FindAveragedDelegationBalances(chain, validator)
+	avgs, err := d.FindAveragedDelegationBalances(chain)
 	if err != nil {
 		return errors.Wrapf(err, "error finding averages")
 	}
-	log.Debugf("found %d delegation averages for %s:%s", len(avgs), chain, validator)
+	log.Debugf("found %d delegation averages for %s", len(avgs), chain)
 	sb := strings.Builder{}
 	fmt.Fprint(&sb, "address,balance\n")
 	for _, a := range avgs {

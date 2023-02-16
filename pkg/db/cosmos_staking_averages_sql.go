@@ -5,7 +5,6 @@ const (
 		with params as (
 			select
 				chains.name,
-				$2 as validator,
 				snapshot_start_block,
 				snapshot_end_block,
 				min_eligible
@@ -19,6 +18,7 @@ const (
 				id,
 				txhash,
 				delegator as account,
+				validator,
 				amount as delta,
 				block_number
 			from
@@ -27,12 +27,6 @@ const (
 				chain = (
 					select
 						chain
-					from
-						params
-				)
-				and validator = (
-					select
-						validator
 					from
 						params
 				)
@@ -65,7 +59,7 @@ const (
 						(
 							select
 								account,
-								delta,
+								sum(delta) as delta,
 								block_number
 							from
 								staking_events
@@ -76,64 +70,28 @@ const (
 									from
 										params
 								)
-								and block_number <= (
+								and block_number < (
 									select
 										snapshot_end_block
 									from
 										params
 								)
+							group by
+								account,
+								block_number
 							union
-							-- starting balance
-							(
-								select
-									account,
-									sum(delta),
-									(
-										select
-											snapshot_start_block
-										from
-											params
-									) as block_number
-								from
-									staking_events
-								where
-									block_number <= (
-										select
-											snapshot_start_block
-										from
-											params
-									)
-								group by
-									account
-								order by
-									block_number
-							)
-							union
-							-- ending balance
-							(
-								select
-									account,
-									sum(delta),
-									(
-										select
-											snapshot_end_block
-										from
-											params
-									) as block_number
-								from
-									staking_events
-								where
-									block_number <= (
-										select
-											snapshot_end_block
-										from
-											params
-									)
-								group by
-									account
-								order by
-									block_number
-							)
+							-- dummy zero delta row at end height so calculate proper blocks between for last record
+							select
+								account,
+								0 as delta,
+								(
+									select
+										snapshot_end_block
+									from
+										params
+								) as block_number
+							from
+								staking_events
 						) as ts
 					where
 						ts.block_number >= (
@@ -184,8 +142,13 @@ const (
 					from
 						params
 				)
-			) > (select min_eligible from params)
+			) > (
+				select
+					min_eligible
+				from
+					params
+			)
 		order by
-			avg_hold desc
+		avg_hold desc
 	`
 )

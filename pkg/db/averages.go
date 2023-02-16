@@ -26,7 +26,7 @@ func (d *AirdropDB) FindAveragedBalances(chain, tokenSymbol string) ([]*Averaged
 	return results, nil
 }
 
-func (d *AirdropDB) FindAveragedDelegationBalances(chain, validator string) ([]*AveragedHolding, error) {
+func (d *AirdropDB) FindAveragedDelegationBalances(chain string) ([]*AveragedHolding, error) {
 	conn, err := d.getConnection()
 	defer conn.Release()
 	if err != nil {
@@ -34,7 +34,7 @@ func (d *AirdropDB) FindAveragedDelegationBalances(chain, validator string) ([]*
 	}
 
 	results := make([]*AveragedHolding, 0, 128)
-	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindCosmosStakingAveragedBalances, chain, validator); err != nil {
+	if err = pgxscan.Select(context.Background(), conn, &results, sqlFindCosmosStakingAveragedBalances, chain); err != nil {
 		return nil, errors.Wrapf(err, "error querying")
 	}
 	return results, nil

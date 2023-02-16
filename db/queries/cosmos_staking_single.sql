@@ -26,10 +26,11 @@ staking_events as (
       from
         params
     )
+--     and delegator = 'cosmos14lultfckehtszvzw4ehu0apvsr77afvyhgqhwh'
+    and delegator = 'cosmos1qaq93847cnwmmnqx72huxd3keylh854kgk2us7'
   order by
     block_number
-),
-averageable as (
+)
   select
     account,
     cumulative_balance,
@@ -72,22 +73,42 @@ averageable as (
               from
                 params
             )
-          group by
-            account,
-            block_number
-          union
-          -- dummy zero delta row at end height so calculate proper blocks between for last record
-          select
-            account,
-            0 as delta,
-            (
-              select
-                snapshot_end_block
-              from
-                params
-            ) as block_number
-          from
-            staking_events
+          group by account, block_number
+          union -- dummy zero delta row at end height so calculate proper blocks between for last record
+          select account, 0 as delta, (select snapshot_end_block from params) as block_number
+          from staking_events
+--           union
+--           -- ending balance
+--           (
+--             select
+--               account,
+--               sum(delta),
+--               (
+--                 select
+--                   snapshot_end_block
+--                 from
+--                   params
+--               ) as block_number
+--             from
+--               staking_events
+--             where
+--               block_number >= (
+--                 select
+--                   snapshot_start_block
+--                 from
+--                   params
+--               )
+--               and block_number < (
+--                 select
+--                   snapshot_end_block
+--                 from
+--                   params
+--               )
+--             group by
+--               account
+--             order by
+--               block_number
+--           )
         ) as ts
       where
         ts.block_number >= (
@@ -104,45 +125,4 @@ averageable as (
         )
     ) as x
   order by
-    block_number
-)
-select
-  account,
-  sum(avg_over_blocks) / (
-    (
-      select
-        snapshot_end_block
-      from
-        params
-    ) - (
-      select
-        snapshot_start_block
-      from
-        params
-    )
-  ) avg_delegated
-from
-  averageable
-group by
-  account
-having
-  sum(avg_over_blocks) / (
-    (
-      select
-        snapshot_end_block
-      from
-        params
-    ) - (
-      select
-        snapshot_start_block
-      from
-        params
-    )
-  ) > (
-    select
-      min_eligible
-    from
-      params
-  )
-order by
-  avg_delegated desc;
+    block_number;
