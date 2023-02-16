@@ -21,12 +21,6 @@ var (
 		},
 	}
 
-	indexEthCmd = &cobra.Command{
-		Use:   "index-eth",
-		Short: "gather eth chain data store in our db",
-		Run:   runEthIndexer,
-	}
-
 	indexCosmosCmd = &cobra.Command{
 		Use:   "index-cosmos",
 		Short: "cosmos-sdk indexing",

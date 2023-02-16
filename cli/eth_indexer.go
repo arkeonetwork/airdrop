@@ -19,8 +19,19 @@ type Config struct {
 }
 
 var (
-	log = logging.WithoutFields()
+	log         = logging.WithoutFields()
+	indexEthCmd = &cobra.Command{
+		Use:   "index-eth",
+		Short: "gather eth chain data store in our db",
+		Run:   runEthIndexer,
+	}
 )
+
+func init() {
+	indexEthCmd.Flags().BoolP("transfers", "t", false, "index token transfers")
+	indexEthCmd.Flags().BoolP("rewards", "r", false, "index staking rewards")
+	indexEthCmd.Flags().Bool("hedgeys", false, "index hedgey events")
+}
 
 // index ethereum things
 func runEthIndexer(cmd *cobra.Command, args []string) {
@@ -36,7 +47,33 @@ func runEthIndexer(cmd *cobra.Command, args []string) {
 	indexerApp := indexer.NewIndexer(indexer.IndexerAppParams{
 		DBConfig: *c,
 	})
+	xfers, _ := cmd.Flags().GetBool("transfers")
+	rewards, _ := cmd.Flags().GetBool("rewards")
+	hedgeys, _ := cmd.Flags().GetBool("hedgeys")
 
-	indexerApp.Start()
+	if !xfers && !rewards && !hedgeys {
+		log.Infof("no flags set, starting all eth indexers")
+		indexerApp.Start()
+		return
+	}
+
+	var err error
+	if xfers {
+		if err = indexerApp.IndexTransfers(); err != nil {
+			cmd.PrintErrf("error indexing transfers: %+v", err)
+		}
+	}
+
+	if rewards {
+		if err = indexerApp.IndexStakingRewardsEvents(); err != nil {
+			cmd.PrintErrf("error indexing staking rewards: %+v", err)
+		}
+	}
+
+	if hedgeys {
+		if err = indexerApp.IndexHedgeyEvents(); err != nil {
+			cmd.PrintErrf("error indexing hedgeys: %+v", err)
+		}
+	}
 	log.Debug("finished data generation process")
 }
