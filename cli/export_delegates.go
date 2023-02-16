@@ -62,6 +62,6 @@ func exportWeightedDelegationAvgs(dbConfig utils.DBConfig, chain, validator, fil
 	if err = os.WriteFile(fileName, []byte(sb.String()), os.ModePerm); err != nil {
 		return errors.Wrapf(err, "error writing %s", fileName)
 	}
-	fmt.Printf("wrote %s", fileName)
+	fmt.Printf("wrote %s\n", fileName)
 	return nil
 }

@@ -62,6 +62,6 @@ func exportThorchainLPAvgs(dbConfig utils.DBConfig, pool, fileName string) error
 	if err = os.WriteFile(fileName, []byte(sb.String()), os.ModePerm); err != nil {
 		return errors.Wrapf(err, "error writing %s", fileName)
 	}
-	fmt.Printf("wrote %s", fileName)
+	fmt.Printf("wrote %s\n", fileName)
 	return nil
 }

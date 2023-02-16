@@ -8,7 +8,7 @@ const (
 				$2 as validator,
 				snapshot_start_block,
 				snapshot_end_block,
-				1 as min_balance
+				min_eligible
 			from
 				chains
 			where
@@ -184,7 +184,7 @@ const (
 					from
 						params
 				)
-			) > (select min_balance from params)
+			) > (select min_eligible from params)
 		order by
 			avg_hold desc
 	`
