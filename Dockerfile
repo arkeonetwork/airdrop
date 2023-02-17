@@ -1,8 +1,6 @@
 FROM golang:1.19-buster as builder
 ARG GITREF=main
 
-RUN apt update && apt upgrade -y
-
 WORKDIR /root
 RUN git clone --depth 2 --branch $GITREF https://github.com/arkeonetwork/airdrop.git
 
