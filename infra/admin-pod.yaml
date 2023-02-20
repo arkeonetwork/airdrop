@@ -6,7 +6,7 @@ metadata:
 spec:
   containers:
     - name: admin
-      image: ghcr.io/arkeonetwork/airdroputils:latest
+      image: ghcr.io/arkeonetwork/airdroputils:dev
       imagePullPolicy: Always
       volumeMounts:
         - name: data
@@ -15,12 +15,41 @@ spec:
         - /bin/bash
         - -c
         - "trap : TERM INT; sleep infinity & wait"
+      
+      env:
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "postgres"
+        - name: DB_POOL_MAX_CONNS
+          value: "16"
+        - name: DB_POOL_MIN_CONNS
+          value: "1"
+        - name: DB_SSL_MODE
+          value: "prefer"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: airdropdbsec
+              key: host
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: airdropdbsec
+              key: user
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: airdropdbsec
+              key: password
       resources:
         limits:
-          memory: "256Mi"
-          cpu: "333m"
+          memory: "16Gi"
+          cpu: "1000m"
         requests:
-          memory: "128Mi"
+          memory: "1Gi"
           cpu: "66m"
   volumes:
     - name: data
