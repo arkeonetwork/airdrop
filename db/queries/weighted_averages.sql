@@ -9,8 +9,8 @@
 				chains
 				join tokens on chains.name = tokens.chain
 			where
-				chains.name = $1
-				and tokens.symbol = $2
+				chains.name = 'ETH'
+				and tokens.symbol = 'FOX'
 		),
 		holders as (
 			select
@@ -137,28 +137,26 @@
 							-- ending balance
 							(
 								select
-									account,
-									sum(delta),
-									(
-										select
-											snapshot_end_block
-										from
-											params
-									) as block_number
+										distinct account,
+										0,
+										(
+												select
+														snapshot_end_block
+												from
+														params
+										) as block_number
 								from
-									token_transfers
+										token_transfers
 								where
-									block_number <= (
-										select
-											snapshot_end_block
-										from
-											params
-									)
-								group by
-									account
+										block_number <= (
+												select
+														snapshot_end_block
+												from
+														params
+										)
 								order by
-									block_number
-							)
+										block_number
+						)
 						) as ts
 					where
 						ts.block_number >= (
@@ -194,6 +192,7 @@
 			) avg_hold
 		from
 			averageable
+		where account = '0xaf2466d9492d6372d57c6ec666495690133538f4'
 		group by
 			account
 		having

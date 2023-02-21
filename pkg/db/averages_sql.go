@@ -141,28 +141,26 @@ const (
 							-- ending balance
 							(
 								select
-									account,
-									sum(delta),
-									(
-										select
-											snapshot_end_block
-										from
-											params
-									) as block_number
+										distinct account,
+										0,
+										(
+												select
+														snapshot_end_block
+												from
+														params
+										) as block_number
 								from
-									token_transfers
+										token_transfers
 								where
-									block_number <= (
-										select
-											snapshot_end_block
-										from
-											params
-									)
-								group by
-									account
+										block_number <= (
+												select
+														snapshot_end_block
+												from
+														params
+										)
 								order by
-									block_number
-							)
+										block_number
+						)
 						) as ts
 					where
 						ts.block_number >= (
@@ -215,7 +213,7 @@ const (
 			)
 		) > (select min_eligible from params)
 		order by
-			avg_hold desc;
+			avg_hold desc
 	`
 	// average staked/farmed balances for eth
 	sqlFindAveragedFarmBalances = `
