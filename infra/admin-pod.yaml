@@ -11,6 +11,10 @@ spec:
       volumeMounts:
         - name: data
           mountPath: /root/data
+        - name: dotarkeo
+          mountPath: "/root/.arkeo"
+        - name: dotsentinel
+          mountPath: "/root/.sentinel"
       command:
         - /bin/bash
         - -c
@@ -55,3 +59,9 @@ spec:
     - name: data
       persistentVolumeClaim:
         claimName: airdroputils-data-pvc
+    - name: dotarkeo
+      persistentVolumeClaim:
+        claimName: arkeod-volume-claim-arkeod-sts-0
+    - name: dotsentinel
+      persistentVolumeClaim:
+        claimName: sentinel-arkeod-volume-claim-sentinel-sts-0
