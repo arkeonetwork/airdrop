@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"time"
 
 	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
 	"github.com/ArkeoNetwork/airdrop/contracts/stakingrewards"
@@ -168,6 +169,7 @@ func (app *IndexerApp) indexStakingRewardContractEvents(
 			return err
 		}
 		log.Debugf("Updated staking events for blocks through %d with %d events", end, len(stakingEvents))
+		time.Sleep(200 * time.Millisecond)
 	}
 	return nil
 }

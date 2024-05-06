@@ -29,7 +29,7 @@ insert into tokens(address, name, symbol, decimals, chain, genesis_block, height
 
 -- gnosis
   -- fox
-insert into tokens(address, name, symbol,decimals,  chain, genesis_block, height) values ('0x21a42669643f45bc0e086b8fc2ed70c23d67509d', 'FOX on xDai', 'FOX', 18, 'GNO', 16988521, 0);
+insert into tokens(address, name, symbol,decimals,  chain, genesis_block, height) values ('0x21a42669643f45bc0e086b8fc2ed70c23d67509d', 'FOX on GNO', 'FOX', 18, 'GNO', 16988521, 0);
 
 -- Polygon
   -- fox

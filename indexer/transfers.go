@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"time"
 
 	"github.com/ArkeoNetwork/airdrop/contracts/erc20"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
@@ -81,7 +82,11 @@ func (app *IndexerApp) indexTransfersForToken(startBlock uint64, endBlock uint64
 	}
 	currentBlock := startBlock
 	retryCount := 20
+	i := 0
 	for currentBlock < endBlock {
+		if i%100 == 0 {
+			log.Infof("process block %d", currentBlock)
+		}
 		end := currentBlock + batchSize
 		filterOpts := bind.FilterOpts{
 			Start:   currentBlock,
@@ -128,6 +133,7 @@ func (app *IndexerApp) indexTransfersForToken(startBlock uint64, endBlock uint64
 			return err
 		}
 		log.Debugf("%s: updated transfers for blocks through %d with %d transfers", name, end, len(transfers))
+		time.Sleep(200 * time.Millisecond)
 	}
 	return nil
 }
