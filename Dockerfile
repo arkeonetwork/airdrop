@@ -8,7 +8,7 @@ WORKDIR /root/airdrop
 RUN make install
 
 # final image
-FROM ubuntu:kinetic
+FROM ubuntu:noble
 
 WORKDIR /usr/local/bin
 COPY --from=builder /go/bin/ .

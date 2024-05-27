@@ -18,7 +18,7 @@ func (app *IndexerApp) IndexTransfers() error {
 	// find all chains we care about
 	chains, err := app.db.FindETHChains()
 	if err != nil {
-		return errors.Wrap(err, "unbale to find chains for tokens")
+		return errors.Wrap(err, "unable to find chains for tokens")
 	}
 
 	// todo: kick off new go-routine for each chain
@@ -47,7 +47,7 @@ func (app *IndexerApp) IndexTransfers() error {
 
 		// iterate tokens array and get the transfers for each token
 		for _, token := range tokens {
-			// determine if the token has been synced to a differnt block
+			// determine if the token has been synced to a different block
 			startBlock := token.GenesisBlock
 			if token.Height > startBlock {
 				startBlock = token.Height
