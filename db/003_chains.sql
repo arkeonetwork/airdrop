@@ -12,9 +12,9 @@ create table chains
 );
 
 insert into chains(name, rpc_url, snapshot_start_block, snapshot_end_block) values 
-('ETH',  'https://mainnet.infura.io/v3/7e04619b10c04711b2cf8dea7a679ff4', 16078485, 16298368); --,
--- ('GNO',  'https://daemon.gnosis.shapeshift.com/', 25235581, 25935581),
--- ('POLY', 'https://polygon-rpc.com', 36005795, 38005795);
+('ETH',  'https://mainnet.infura.io/v3/7e04619b10c04711b2cf8dea7a679ff4', 16078485, 19621518),
+('GNO',  'https://daemon.gnosis.shapeshift.com/', 25215581, 33363402),
+('POLY', 'https://polygon-rpc.com', 36206795, 55644325);
 
 ALTER TABLE tokens ADD CONSTRAINT chains_fk FOREIGN KEY (chain) REFERENCES chains(name);
 ALTER TABLE staking ADD CONSTRAINT chains_fk FOREIGN KEY (chain) REFERENCES chains(name);
