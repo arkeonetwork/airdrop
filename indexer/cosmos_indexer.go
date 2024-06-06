@@ -275,6 +275,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
 	for i, evt := range evtsSequenced {
+		log.Printf("EVT: %s", evt.GetType())
 		m := attributesToMap(evt.GetAttributes())
 		if i%2 == 0 {
 			// staking event itself: delegate,unbond,redelegate
@@ -369,22 +370,27 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	perPage := 100
 	query := fmt.Sprintf("tx.height=%d AND message.module='staking'", height)
 	txSearchResults = make([]*coretypes.ResultTx, 0, 128)
+	log.Printf("query: %d", query)
+
 	for {
 		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		log.Printf("Search Results: %d", searchResults)
 		if err != nil {
 			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
+			log.Printf("Error Getting Search Results")
 			break
 		}
 
 		txSearchResults = append(txSearchResults, searchResults.Txs...)
 		if len(txSearchResults) == searchResults.TotalCount {
-			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
+			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
 			break
 		}
 		page++
 	}
 
 	if txSearchErr != nil {
+		log.Printf("Tx Search Err %d", txSearchErr)
 		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
 	}
 
