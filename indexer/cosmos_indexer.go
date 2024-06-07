@@ -1,7 +1,7 @@
 package indexer
 
 import (
-	"context"
+	// "context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/rpc/client/http"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
+	// coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -47,6 +47,34 @@ type Delegation struct {
 	DelegatorAddress string `json:"delegator_address"`
 	ValidatorAddress string `json:"validator_address"`
 	Shares           string `json:"shares"`
+}
+
+type TransactionAmount struct {
+	Denom  string `json:"denom"`
+	Amount string `json:"amount"`
+}
+
+type TransactionMessages struct {
+	Type             string            `json:"@type"`
+	DelegatorAddress string            `json:"delegator_address"`
+	ValidatorAddress string            `json:"validator_address"`
+	Amount           TransactionAmount `json:"amount"`
+}
+
+type TransactionBody struct {
+	Messages []TransactionMessages `json:"messages"`
+	Memo     string                `json:"memo"`
+}
+
+type Transaction struct {
+	Body TransactionBody `json:"body"`
+}
+
+type TransactionsResponse struct {
+	Txs []*Transaction `json:"txs"`
+	// TxResponse string      `json:"tx_responses"`
+	Pagination string `json:"pagination"`
+	Total      string `json:"total"`
 }
 
 type DelegationResponse struct {
@@ -361,29 +389,51 @@ func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
 func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
-		ctx             = context.Background()
-		txSearchResults []*coretypes.ResultTx
+		// ctx             = context.Background()
+		txSearchResults []*Transaction
 		txSearchErr     error
 	)
 
 	page := 1
 	perPage := 100
-	query := fmt.Sprintf("tx.height=%d AND message.module='staking'", height)
-	txSearchResults = make([]*coretypes.ResultTx, 0, 128)
-	log.Printf("query: %d", query)
-
+	// query := fmt.Sprintf("tx.height=%d AND message.module='staking'", height)
+	txSearchResults = make([]*Transaction, 0, 128)
 	for {
-		searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
-		log.Printf("Search Results: %d", searchResults)
+		// searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		resp, err := c.lcd.R().SetQueryString(fmt.Sprintf("events=tx.height=19696129&events=message.module='staking'&page=%d&perPage=%d", page, perPage)).Get(c.lcd.BaseURL + "/cosmos/tx/v1beta1/txs?")
+		log.Println("Response Info:")
+		log.Println("  Error      :", err)
+		log.Println("  Status Code:", resp.StatusCode())
+		log.Println("  Status     :", resp.Status())
+		log.Println("  Proto      :", resp.Proto())
+		log.Println("  Time       :", resp.Time())
+		log.Println("  Received At:", resp.ReceivedAt())
+		log.Println("  Body       :\n", resp)
+		log.Println()
+
 		if err != nil {
 			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
 			log.Printf("Error Getting Search Results")
 			break
 		}
 
+		searchResults := TransactionsResponse{}
+		if err = json.Unmarshal(resp.Body(), &searchResults); err != nil {
+			log.Errorf("Failed to unmarshal transaction body")
+			return errors.Wrapf(err, "error unmarshalling response")
+		}
+
+		log.Printf("SEARCH RES: ", searchResults)
+
+		total, err := strconv.Atoi(searchResults.Total)
+		if err != nil {
+			log.Errorf("Failed to convert total to string")
+			return errors.Wrapf(err, "error converting to string")
+		}
+
 		txSearchResults = append(txSearchResults, searchResults.Txs...)
-		if len(txSearchResults) == searchResults.TotalCount {
-			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, searchResults.TotalCount)
+		if len(txSearchResults) == total {
+			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, total)
 			break
 		}
 		page++
@@ -394,14 +444,14 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
 	}
 
-	for _, t := range txSearchResults {
-		if !shouldStoreTx(t.Tx, &t.TxResult) {
-			continue
-		}
-		if err := c.handleStakingTx(height, t.Tx, &t.TxResult); err != nil {
-			log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
-		}
-	}
+	// for _, t := range txSearchResults {
+	// 	if !shouldStoreTx(t.Tx, &t.TxResult) {
+	// 		continue
+	// 	}
+	// 	if err := c.handleStakingTx(height, t.Tx, &t.TxResult); err != nil {
+	// 		log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
+	// 	}
+	// }
 	return nil
 }
 
