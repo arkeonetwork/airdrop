@@ -254,6 +254,7 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 
 func shouldStoreTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 	for _, evt := range txResults.Events {
+		log.Printf(evt.Type)
 		switch evt.GetType() {
 		case "delegate":
 			return true

@@ -65,8 +65,20 @@ func runEthIndexer(cmd *cobra.Command, args []string) {
 	}
 
 	if rewards {
-		if err = indexerApp.IndexStakingRewardsEvents(); err != nil {
-			cmd.PrintErrf("error indexing staking rewards: %+v", err)
+		if err = indexerApp.IndexStakingRewardsEvents("stakingrewardsv5"); err != nil {
+			cmd.PrintErrf("error indexing staking rewards v5: %+v", err)
+		}
+		if err = indexerApp.IndexStakingRewardsEvents("stakingrewardsv6"); err != nil {
+			cmd.PrintErrf("error indexing staking rewards v6: %+v", err)
+		}
+		if err = indexerApp.IndexStakingRewardsEvents("stakingrewardsv7"); err != nil {
+			cmd.PrintErrf("error indexing staking rewards v7: %+v", err)
+		}
+		if err = indexerApp.IndexStakingRewardsEvents("stakingrewardsv8"); err != nil {
+			cmd.PrintErrf("error indexing staking rewards v8: %+v", err)
+		}
+		if err = indexerApp.IndexStakingRewardsEvents("stakingrewardsv9"); err != nil {
+			cmd.PrintErrf("error indexing staking rewards v9: %+v", err)
 		}
 	}
 

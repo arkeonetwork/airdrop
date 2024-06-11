@@ -53,7 +53,7 @@ create table staking
 
 -- mainnet 
   -- LP stakingrewards
-insert into staking(address, contract_name, chain, genesis_block, height) values ('0xc14eaa8284feff79edc118e06cadbf3813a7e555', 'stakingrewards', 'ETH', 15941059, 0);
+insert into staking(address, contract_name, chain, genesis_block, height) values ('0xc14eaa8284feff79edc118e06cadbf3813a7e555', 'stakingrewardsv5', 'ETH', 15941059, 0);
 
 ---- create above / drop below ----
 -- undo --

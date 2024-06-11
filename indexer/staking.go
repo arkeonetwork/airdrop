@@ -14,10 +14,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (app *IndexerApp) IndexStakingRewardsEvents() error {
+func (app *IndexerApp) IndexStakingRewardsEvents(contractName string) error {
+	log.Info("try")
+
 	// get all staking contracts
-	stakingContracts, err := app.db.FindStakingContractsByName("stakingrewards")
+	stakingContracts, err := app.db.FindStakingContractsByName(contractName)
 	if err != nil {
+		log.Info("error finding all staking contracts")
 		return errors.Wrap(err, "error finding all staking contracts")
 	}
 	// for each staking contract
