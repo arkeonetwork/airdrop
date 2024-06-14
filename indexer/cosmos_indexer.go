@@ -6,12 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"os"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
 	"github.com/ArkeoNetwork/airdrop/pkg/types"
 	"github.com/ArkeoNetwork/airdrop/pkg/utils"
@@ -19,9 +13,19 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/rpc/client/http"
+	"io"
+	"math/big"
+	// "net"
+	"net/http"
+	"net/url"
+	// "net/rpc"
+	tmhttp "github.com/tendermint/tendermint/rpc/client/http"
 	// coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type CosmosIndexerParams struct {
@@ -31,7 +35,7 @@ type CosmosIndexerParams struct {
 
 type CosmosIndexer struct {
 	db          *db.AirdropDB
-	tm          *http.HTTP
+	tm          *tmhttp.HTTP
 	lcd         *resty.Client
 	chain       *types.Chain
 	startHeight int64
@@ -47,34 +51,6 @@ type Delegation struct {
 	DelegatorAddress string `json:"delegator_address"`
 	ValidatorAddress string `json:"validator_address"`
 	Shares           string `json:"shares"`
-}
-
-type TransactionAmount struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
-}
-
-type TransactionMessages struct {
-	Type             string            `json:"@type"`
-	DelegatorAddress string            `json:"delegator_address"`
-	ValidatorAddress string            `json:"validator_address"`
-	Amount           TransactionAmount `json:"amount"`
-}
-
-type TransactionBody struct {
-	Messages []TransactionMessages `json:"messages"`
-	Memo     string                `json:"memo"`
-}
-
-type Transaction struct {
-	Body TransactionBody `json:"body"`
-}
-
-type TransactionsResponse struct {
-	Txs []*Transaction `json:"txs"`
-	// TxResponse string      `json:"tx_responses"`
-	Pagination string `json:"pagination"`
-	Total      string `json:"total"`
 }
 
 type DelegationResponse struct {
@@ -93,6 +69,46 @@ type ImportedDelegation struct {
 	} `json:"app_state"`
 }
 
+// type TxSearchResponse struct {
+//     Result  coretypes.ResultTxSearch `json:"result"`
+// }
+
+type TxSearchResponse struct {
+	Result Result `json:"result"`
+}
+
+type Result struct {
+	Txs        []*Tx  `json:"txs"`
+	TotalCount string `json:"total_count"`
+}
+
+type Tx struct {
+	Hash     string   `json:"hash"`
+	Height   string   `json:"height"`
+	TxResult TxResult `json:"tx_result"`
+	Tx       string   `json:"tx"`
+}
+
+type EventAttribute struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+	Index bool   `json:"index"`
+}
+
+type Event struct {
+	Type       string           `json:"type"`
+	Attributes []EventAttribute `json:"attributes"`
+}
+
+type TxResult struct {
+	Code      int               `json:"code"`
+	Log       string            `json:"log"`
+	Info      string            `json:"info"`
+	GasWanted string            `json:"gas_wanted"`
+	GasUsed   string            `json:"gas_used"`
+	Events    []Event `json:"events"`
+}
+
 func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	d, err := db.New(params.DB)
 	if err != nil {
@@ -104,13 +120,13 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	}
 
 	log.Infof("connecting to tendermint node at %s", chain.RpcUrl)
-	tm, err := arkutils.NewTendermintClient(chain.RpcUrl)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", chain.RpcUrl)
-	}
+	// tm, err := arkutils.NewTendermintClient(chain.RpcUrl)
+	// if err != nil {
+	// 	return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", chain.RpcUrl)
+	// }
 	lcd := resty.New().SetTimeout(10 * time.Second).SetBaseURL(chain.LcdUrl)
 
-	return &CosmosIndexer{db: d, tm: tm, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
+	return &CosmosIndexer{db: d, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
 }
 
 func (c *CosmosIndexer) IndexDelegationsFromStateExport(dataDir, chain string, height int64) error {
@@ -254,7 +270,6 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 
 func shouldStoreTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 	for _, evt := range txResults.Events {
-		log.Printf(evt.Type)
 		switch evt.GetType() {
 		case "delegate":
 			return true
@@ -391,50 +406,72 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
 		// ctx             = context.Background()
-		txSearchResults []*Transaction
+		txSearchResults []*Tx
 		txSearchErr     error
 	)
 
 	page := 1
-	perPage := 100
-	// query := fmt.Sprintf("tx.height=%d AND message.module='staking'", height)
-	txSearchResults = make([]*Transaction, 0, 128)
-	for {
-		// searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
-		resp, err := c.lcd.R().SetQueryString(fmt.Sprintf("events=tx.height=19696129&events=message.module='staking'&page=%d&perPage=%d", page, perPage)).Get(c.lcd.BaseURL + "/cosmos/tx/v1beta1/txs?")
-		log.Println("Response Info:")
-		log.Println("  Error      :", err)
-		log.Println("  Status Code:", resp.StatusCode())
-		log.Println("  Status     :", resp.Status())
-		log.Println("  Proto      :", resp.Proto())
-		log.Println("  Time       :", resp.Time())
-		log.Println("  Received At:", resp.ReceivedAt())
-		log.Println("  Body       :\n", resp)
-		log.Println()
+	// perPage := 100
+	// query := fmt.Sprintf(`"tx.height=%d"&page=%d&per_page=%d`, height, page, perPage)
+	txSearchResults = make([]*Tx, 0, 128)
 
+	for {
+		// url := "https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search?query=%22tx.height=7000001%22"
+		// url := fmt.Sprintf("https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search?query=%s", query)
+		query := url.QueryEscape(fmt.Sprintf("\"tx.height=%d\"", 12939961))
+
+		// Define the base URL
+		baseURL := "https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search"
+
+		// Construct the full URL with the query parameter
+		url := fmt.Sprintf("%s?query=%s", baseURL, query)
+		log.Infof("Requesting %s", url)
+		resp, err := http.Get(url)
 		if err != nil {
-			txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
-			log.Printf("Error Getting Search Results")
+			log.Fatalf("Failed to make the request: %v", err)
+		}
+		defer resp.Body.Close()
+
+		// Check if the request was successful
+		if resp.StatusCode != http.StatusOK {
+			log.Errorf("Failed to get a successful response: %s", resp.Status)
+			txSearchErr = errors.Wrapf(err, "Failed to get a successful response: %s", resp.Status)
 			break
 		}
 
-		searchResults := TransactionsResponse{}
-		if err = json.Unmarshal(resp.Body(), &searchResults); err != nil {
-			log.Errorf("Failed to unmarshal transaction body")
-			return errors.Wrapf(err, "error unmarshalling response")
-		}
-
-		log.Printf("SEARCH RES: ", searchResults)
-
-		total, err := strconv.Atoi(searchResults.Total)
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Errorf("Failed to convert total to string")
-			return errors.Wrapf(err, "error converting to string")
+			log.Errorf("Failed to read the response body: %v", err)
+			txSearchErr = errors.Wrapf(err, "Failed to read the response body: %v", err)
+			break
 		}
 
-		txSearchResults = append(txSearchResults, searchResults.Txs...)
-		if len(txSearchResults) == total {
-			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %d", height, len(txSearchResults), len(searchResults.Txs), page, total)
+		searchResults := TxSearchResponse{}
+		if err = json.Unmarshal(body, &searchResults); err != nil {
+			log.Errorf("Failed to unmarshal transaction body")
+			txSearchErr = errors.Wrapf(err, "error unmarshalling response")
+			break
+		}
+
+		// searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
+		log.Printf("Search Results: %s", searchResults.Result.Txs[0].Hash)
+		// if err != nil {
+		// 	txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
+		// 	log.Printf("Error Getting Search Results")
+		// 	break
+		// }
+
+		totalCount, err := strconv.Atoi(searchResults.Result.TotalCount)
+		if err != nil {
+			fmt.Println("Error converting string to int:", err)
+			txSearchErr = errors.Wrapf(err, "error converting string to int")
+			break
+		}
+		
+		txSearchResults = append(txSearchResults, searchResults.Result.Txs...)
+		if len(txSearchResults) == totalCount {
+			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %s", height, len(txSearchResults), len(searchResults.Result.Txs), page, searchResults.Result.TotalCount)
 			break
 		}
 		page++
