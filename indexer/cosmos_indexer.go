@@ -12,7 +12,7 @@ import (
 	arkutils "github.com/ArkeoNetwork/common/utils"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
+	// abcitypes "github.com/tendermint/tendermint/abci/types"
 	"io"
 	"math/big"
 	// "net"
@@ -21,7 +21,7 @@ import (
 	// "net/rpc"
 	tmhttp "github.com/tendermint/tendermint/rpc/client/http"
 	// coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	// tmtypes "github.com/tendermint/tendermint/types"
 	"os"
 	"strconv"
 	"strings"
@@ -38,6 +38,7 @@ type CosmosIndexer struct {
 	tm          *tmhttp.HTTP
 	lcd         *resty.Client
 	chain       *types.Chain
+	rpc         string
 	startHeight int64
 	endHeight   int64
 }
@@ -69,10 +70,6 @@ type ImportedDelegation struct {
 	} `json:"app_state"`
 }
 
-// type TxSearchResponse struct {
-//     Result  coretypes.ResultTxSearch `json:"result"`
-// }
-
 type TxSearchResponse struct {
 	Result Result `json:"result"`
 }
@@ -101,11 +98,11 @@ type Event struct {
 }
 
 type TxResult struct {
-	Code      int               `json:"code"`
-	Log       string            `json:"log"`
-	Info      string            `json:"info"`
-	GasWanted string            `json:"gas_wanted"`
-	GasUsed   string            `json:"gas_used"`
+	Code      int     `json:"code"`
+	Log       string  `json:"log"`
+	Info      string  `json:"info"`
+	GasWanted string  `json:"gas_wanted"`
+	GasUsed   string  `json:"gas_used"`
 	Events    []Event `json:"events"`
 }
 
@@ -120,13 +117,10 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	}
 
 	log.Infof("connecting to tendermint node at %s", chain.RpcUrl)
-	// tm, err := arkutils.NewTendermintClient(chain.RpcUrl)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "error creating tendermint client with rpc %s", chain.RpcUrl)
-	// }
+	rpc := chain.RpcUrl
 	lcd := resty.New().SetTimeout(10 * time.Second).SetBaseURL(chain.LcdUrl)
 
-	return &CosmosIndexer{db: d, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
+	return &CosmosIndexer{db: d, rpc: rpc, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
 }
 
 func (c *CosmosIndexer) IndexDelegationsFromStateExport(dataDir, chain string, height int64) error {
@@ -263,14 +257,15 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 	for i := startHeight; i <= endHeight; i++ {
 		if err := c.indexCosmosDelegations(i); err != nil {
 			log.Errorf("error indexing delegations at height %d: %+v", i, err)
+			break
 		}
 	}
 	return nil
 }
 
-func shouldStoreTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
+func shouldStoreTx(txResults *TxResult) bool {
 	for _, evt := range txResults.Events {
-		switch evt.GetType() {
+		switch evt.Type {
 		case "delegate":
 			return true
 		case "unbond":
@@ -283,33 +278,35 @@ func shouldStoreTx(tx tmtypes.Tx, txResults *abcitypes.ResponseDeliverTx) bool {
 	return false
 }
 
-func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *abcitypes.ResponseDeliverTx) error {
+func (c *CosmosIndexer) handleStakingTx(height int64, tx string, txResult *TxResult) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
-	txHash := hashTx(tx)
-	evtsSequenced := make([]abcitypes.Event, len(txResult.GetEvents()))
+	txHash := tx
+	evtsSequenced := make([]Event, len(txResult.Events))
 	evtsSeq := int64(0)
 	evtsIndexMap := make(map[int64]int64, 1024)
-	for i, evt := range txResult.GetEvents() {
-		switch evt.GetType() {
+	for i, evt := range txResult.Events {
+		switch evt.Type {
 		case "delegate":
 			evtsSequenced[evtsSeq] = evt
+			evtsIndexMap[evtsSeq] = int64(i)
 			evtsSeq++
 		case "redelegate":
 			evtsSequenced[evtsSeq] = evt
+			evtsIndexMap[evtsSeq] = int64(i)
 			evtsSeq++
 		case "unbond":
 			evtsSequenced[evtsSeq] = evt
+			evtsIndexMap[evtsSeq] = int64(i)
 			evtsSeq++
 		case "message":
-			m := make(map[string]string, len(evt.GetAttributes()))
-			for _, attr := range evt.GetAttributes() {
-				m[string(attr.GetKey())] = string(attr.GetValue())
+			m := make(map[string]string, len(evt.Attributes))
+			for _, attr := range evt.Attributes {
+				m[string(attr.Key)] = string(attr.Value)
 			}
-			if module, ok := m["module"]; ok && module == "staking" {
+			if module, ok := m["module"]; ok && (module == "staking") {
 				if delegator, ok := m["sender"]; ok {
 					log.Debugf("adding delegate event delegator %s", delegator)
 					evtsSequenced[evtsSeq] = evt
-					evtsIndexMap[evtsSeq] = int64(i)
 					evtsSeq++
 				}
 			}
@@ -318,21 +315,31 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced)/2)
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
+
+	// swap events hack to make sure the first event is a staking event
+	if evtsSequenced[0].Type == "message" {
+		evtHolder0 := evtsSequenced[0]
+		evtHolder1 := evtsSequenced[1]
+		evtsSequenced[0] = evtHolder1
+		evtsSequenced[1] = evtHolder0
+	}
 	for i, evt := range evtsSequenced {
-		log.Printf("EVT: %s", evt.GetType())
-		m := attributesToMap(evt.GetAttributes())
-		if i%2 == 0 {
+		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
+		m := attributesToMap(evt.Attributes)
+		if evt.Type != "message" {
 			// staking event itself: delegate,unbond,redelegate
 			_, amount, err := parseAmount(m["amount"], c.chain.Decimals)
 			if err != nil {
 				log.Errorf("error parsing amount %s: %+v", m["amount"], err)
+				return errors.Wrapf(err, "error parsing amount %s", m["amount"])
 			}
-			var srcValidator, destValidator string
-			switch evt.GetType() {
+			var srcValidator, destValidator, delegator string
+			var delegatorExists bool
+			switch evt.Type {
 			case "delegate":
 				destValidator = m["validator"]
+				delegator, delegatorExists = m["delegator"]
 			case "redelegate":
-				// FIXEME: need to split in to unbond and delegate events
 				destValidator = m["destination_validator"]
 				srcValidator = m["source_validator"]
 			case "unbond":
@@ -341,14 +348,23 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			}
 
 			validator := destValidator
-			if evt.GetType() == "unbond" {
+			if evt.Type == "unbond" {
 				validator = srcValidator
+			}
+
+			evtIndex, ok := evtsIndexMap[int64(i)]
+			if !ok {
+				log.Warnf("no event index found for %d", i)
+			} else {
+				evtIndex = 0
 			}
 
 			stakingEvt = &stakingEventWrapper{
 				CosmosStakingEvent: types.CosmosStakingEvent{
-					EventType:   evt.GetType(),
+					EventType:   evt.Type,
+					EventIndex:  evtIndex,
 					Validator:   validator,
+					Delegator:   delegator,
 					Chain:       c.chain.Name,
 					Value:       amount,
 					BlockNumber: uint64(height),
@@ -356,22 +372,30 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 				},
 				srcValidator: srcValidator,
 			}
+
+			if delegatorExists && evt.Type == "delegate" {
+				stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+			}
 		} else {
 			// should be message+staking module+spender (delegator address)?
-			log.Debug(evt)
 			if stakingEvt == nil {
 				return fmt.Errorf("stakingEvt null, event sequencing (programming) issue")
 			}
 			evtIndex, ok := evtsIndexMap[int64(i)]
 			if !ok {
-				log.Warnf("no event index found for %d", i)
+				log.Debugf("no event index found for %d", i)
+			} else {
+				stakingEvt.EventIndex = evtIndex
 			}
-			stakingEvt.Delegator = m["sender"]
-			stakingEvt.EventIndex = evtIndex
-			stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+			if stakingEvt.Delegator == "" {
+				stakingEvt.Delegator = m["sender"]
+				stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+			}
 			if stakingEvt.EventType == "redelegate" {
+				stakingEvents[0].EventType = "delegate"
+
 				unbondEvt := types.CosmosStakingEvent{
-					EventType:   stakingEvt.EventType,
+					EventType:   "unbond",
 					EventIndex:  0, // using zero here for extra row to maintain uniqueness
 					Delegator:   stakingEvt.Delegator,
 					Validator:   stakingEvt.srcValidator,
@@ -385,7 +409,13 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx tmtypes.Tx, txResult *a
 			stakingEvt = nil
 		}
 	}
+	log.Debugf("stakingEvt %v", stakingEvt)
 	log.Infof("inserting %d staking events", len(stakingEvents))
+	if len(stakingEvents) == 0 {
+		return errors.New("no staking events to insert")
+	}
+	totalAmount += len(stakingEvents)
+	log.Infof("totalAmount %d", totalAmount)
 	return c.db.InsertStakingEvents(stakingEvents)
 }
 
@@ -394,48 +424,45 @@ type stakingEventWrapper struct {
 	srcValidator string
 }
 
-func attributesToMap(attributes []abcitypes.EventAttribute) map[string]string {
+func attributesToMap(attributes []EventAttribute) map[string]string {
 	m := make(map[string]string, len(attributes))
 	for _, a := range attributes {
 		m[string(a.Key)] = string(a.Value)
 	}
 	return m
 }
-
+var totalAmount int
 func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
-		// ctx             = context.Background()
 		txSearchResults []*Tx
 		txSearchErr     error
 	)
 
 	page := 1
-	// perPage := 100
-	// query := fmt.Sprintf(`"tx.height=%d"&page=%d&per_page=%d`, height, page, perPage)
+	perPage := 100
 	txSearchResults = make([]*Tx, 0, 128)
 
 	for {
-		// url := "https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search?query=%22tx.height=7000001%22"
-		// url := fmt.Sprintf("https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search?query=%s", query)
-		query := url.QueryEscape(fmt.Sprintf("\"tx.height=%d\"", 12939961))
+		query := url.QueryEscape(fmt.Sprintf("\"tx.height=%d\"", height))
+		query = fmt.Sprintf("%s&page=%d&limit=%d", query, page, perPage)
+		baseURL := c.rpc
+		url := fmt.Sprintf("%s/tx_search?query=%s", baseURL, query)
 
-		// Define the base URL
-		baseURL := "https://cosmos-mainnet.g.allthatnode.com/archive/tendermint/e2f20ff3e5b74bb29830519876e2059d/tx_search"
-
-		// Construct the full URL with the query parameter
-		url := fmt.Sprintf("%s?query=%s", baseURL, query)
 		log.Infof("Requesting %s", url)
+
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Fatalf("Failed to make the request: %v", err)
+			txSearchErr = errors.Wrapf(err, "Failed to make the request: %v", err)
+			break
 		}
 		defer resp.Body.Close()
 
 		// Check if the request was successful
 		if resp.StatusCode != http.StatusOK {
 			log.Errorf("Failed to get a successful response: %s", resp.Status)
-			txSearchErr = errors.Wrapf(err, "Failed to get a successful response: %s", resp.Status)
+			txSearchErr = errors.New("Failed to get a successful response")
 			break
 		}
 
@@ -454,13 +481,6 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 			break
 		}
 
-		// searchResults, err := c.tm.TxSearch(ctx, query, false, &page, &perPage, "asc")
-		log.Printf("Search Results: %s", searchResults.Result.Txs[0].Hash)
-		// if err != nil {
-		// 	txSearchErr = errors.Wrapf(err, "error reading search results height: %d page %d", height, page)
-		// 	log.Printf("Error Getting Search Results")
-		// 	break
-		// }
 
 		totalCount, err := strconv.Atoi(searchResults.Result.TotalCount)
 		if err != nil {
@@ -468,10 +488,15 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 			txSearchErr = errors.Wrapf(err, "error converting string to int")
 			break
 		}
-		
+
+		if totalCount == 0 {
+			log.Debugf("height %d no txs found", height)
+			break
+		}
+
 		txSearchResults = append(txSearchResults, searchResults.Result.Txs...)
 		if len(txSearchResults) == totalCount {
-			log.Printf("height %d break tx search loop with %d gathered. %d in page %d totalCount %s", height, len(txSearchResults), len(searchResults.Result.Txs), page, searchResults.Result.TotalCount)
+			log.Debugf("height %d break tx search loop with %d gathered. %d in page %d totalCount %s", height, len(txSearchResults), len(searchResults.Result.Txs), page, searchResults.Result.TotalCount)
 			break
 		}
 		page++
@@ -482,19 +507,21 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 		return errors.Wrapf(txSearchErr, "error searching txs block %d", height)
 	}
 
-	// for _, t := range txSearchResults {
-	// 	if !shouldStoreTx(t.Tx, &t.TxResult) {
-	// 		continue
-	// 	}
-	// 	if err := c.handleStakingTx(height, t.Tx, &t.TxResult); err != nil {
-	// 		log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
-	// 	}
-	// }
+	for _, t := range txSearchResults {
+		if !shouldStoreTx(&t.TxResult) {
+			continue
+		}
+		if err := c.handleStakingTx(height, t.Hash, &t.TxResult); err != nil {
+			log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
+			return errors.Wrapf(err, "error handling staking tx %s", hashTx(t.Tx))
+		}
+	}
 	return nil
 }
 
-func hashTx(bytes []byte) string {
-	h := sha256.Sum256(bytes)
+func hashTx(tx string) string {
+	data := []byte(tx)
+	h := sha256.Sum256(data)
 	return strings.ToUpper(hex.EncodeToString(h[:]))
 }
 
