@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/ArkeoNetwork/airdrop/indexer"
 	"github.com/ArkeoNetwork/common/utils"
@@ -111,8 +110,7 @@ func runDelegationsFromStateExport(cmd *cobra.Command, args []string) {
 		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
 		return
 	}
-	dataDir := fmt.Sprintf("%s/%s", baseDataDir, strings.ToLower(chain))
-	if err = indxr.IndexDelegationsFromStateExport(dataDir, chain, height); err != nil {
+	if err = indxr.IndexDelegationsFromStateExport(baseDataDir, chain, height); err != nil {
 		cmd.PrintErrf("error indexing Delegations from state export: %+v", err)
 	}
 }

@@ -123,8 +123,7 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 	return &CosmosIndexer{db: d, rpc: rpc, lcd: lcd, chain: chain, startHeight: int64(chain.SnapshotStartBlock), endHeight: int64(chain.SnapshotEndBlock)}, nil
 }
 
-func (c *CosmosIndexer) IndexDelegationsFromStateExport(dataDir, chain string, height int64) error {
-	stateExportFile := fmt.Sprintf("%s/%d.json", dataDir, height)
+func (c *CosmosIndexer) IndexDelegationsFromStateExport(stateExportFile, chain string, height int64) error {
 	start := time.Now()
 	raw, err := os.ReadFile(stateExportFile)
 	if err != nil {
@@ -188,7 +187,7 @@ func parseShares(s string, decimals uint8) (float64, error) {
 	
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
-	startHeight := int64(c.chain.SnapshotStartBlock)
+	startHeight := int64(0) //int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
 
 	latest, err := c.db.FindLatestIndexedCosmosStakingBlock(c.chain.Name)
@@ -262,7 +261,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 	var stakingEvt *stakingEventWrapper
 
 	for i, evt := range evtsSequenced {
-		log.Infof("EVT: %s, Index: %d", evt.Type, i)
+		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
 		m := attributesToMap(evt.Attributes)
 		if evt.Type != "message" {
 			if evt.Type == "redelegate" {
@@ -362,7 +361,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
 				}
 				if stakingEvt.EventType == "redelegate" {
-					log.Printf("LENGTH: %d", len(stakingEvents))
+					log.Debugf("LENGTH: %d", len(stakingEvents))
 					stakingEvents[0].EventType = "delegate"
 
 					unbondEvt := types.CosmosStakingEvent{
@@ -382,11 +381,11 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 		}
 	}
 	// log.Infof("stakingEvt %v", stakingEvt)
-	log.Infof("inserting %d staking events", len(stakingEvents))
+	log.Debugf("inserting %d staking events", len(stakingEvents))
 	if len(stakingEvents) == 0 {
 		return errors.New("no staking events to insert")
 	}
-	log.Infof("totalAmount %d", totalAmount)
+	log.Debugf("totalAmount %d", totalAmount)
 	return c.db.InsertStakingEvents(stakingEvents)
 }
 
