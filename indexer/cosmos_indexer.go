@@ -278,9 +278,8 @@ func shouldStoreTx(txResults *TxResult) bool {
 	return false
 }
 
-func (c *CosmosIndexer) handleStakingTx(height int64, tx string, txResult *TxResult) error {
+func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *TxResult) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
-	txHash := tx
 	evtsSequenced := make([]Event, len(txResult.Events))
 	evtsSeq := int64(0)
 	evtsIndexMap := make(map[int64]int64, 1024)
@@ -316,17 +315,16 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx string, txResult *TxRes
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
 
-	// swap events hack to make sure the first event is a staking event
-	if evtsSequenced[0].Type == "message" {
-		evtHolder0 := evtsSequenced[0]
-		evtHolder1 := evtsSequenced[1]
-		evtsSequenced[0] = evtHolder1
-		evtsSequenced[1] = evtHolder0
-	}
 	for i, evt := range evtsSequenced {
-		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
+		log.Infof("EVT: %s, Index: %d", evt.Type, i)
 		m := attributesToMap(evt.Attributes)
 		if evt.Type != "message" {
+			if evt.Type == "redelegate" {
+				totalAmount += 2
+			} else {
+				totalAmount += 1
+			}
+			// log.Printf("StakingEvt %v", stakingEvt)
 			// staking event itself: delegate,unbond,redelegate
 			_, amount, err := parseAmount(m["amount"], c.chain.Decimals)
 			if err != nil {
@@ -342,6 +340,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx string, txResult *TxRes
 			case "redelegate":
 				destValidator = m["destination_validator"]
 				srcValidator = m["source_validator"]
+				delegator, delegatorExists = m["delegator"]
 			case "unbond":
 				srcValidator = m["validator"]
 				amount = -amount
@@ -355,66 +354,92 @@ func (c *CosmosIndexer) handleStakingTx(height int64, tx string, txResult *TxRes
 			evtIndex, ok := evtsIndexMap[int64(i)]
 			if !ok {
 				log.Warnf("no event index found for %d", i)
-			} else {
 				evtIndex = 0
 			}
 
-			stakingEvt = &stakingEventWrapper{
-				CosmosStakingEvent: types.CosmosStakingEvent{
-					EventType:   evt.Type,
-					EventIndex:  evtIndex,
-					Validator:   validator,
-					Delegator:   delegator,
-					Chain:       c.chain.Name,
-					Value:       amount,
-					BlockNumber: uint64(height),
-					TxHash:      txHash,
-				},
-				srcValidator: srcValidator,
+			if stakingEvt != nil { // message came first
+				stakingEvt.srcValidator = srcValidator
+				stakingEvt.CosmosStakingEvent.EventType = evt.Type
+				stakingEvt.CosmosStakingEvent.EventIndex = evtIndex
+				stakingEvt.CosmosStakingEvent.Value = amount
+				stakingEvt.CosmosStakingEvent.Validator = validator
+				if !delegatorExists {
+					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+				}
+				if evt.Type == "redelegate" {
+					stakingEvt.EventType = "delegate"
+					unbondEvt := types.CosmosStakingEvent{
+						EventType:   "unbond",
+						EventIndex:  0, // using zero here for extra row to maintain uniqueness
+						Delegator:   stakingEvt.Delegator,
+						Validator:   stakingEvt.srcValidator,
+						Chain:       c.chain.Name,
+						Value:       -stakingEvt.Value,
+						BlockNumber: uint64(height),
+						TxHash:      txHash,
+					}
+					stakingEvents = append(stakingEvents, &unbondEvt)
+				}
+			} else { // staking event came first
+				stakingEvt = &stakingEventWrapper{
+					CosmosStakingEvent: types.CosmosStakingEvent{
+						EventType:   evt.Type,
+						EventIndex:  evtIndex,
+						Validator:   validator,
+						Delegator:   delegator,
+						Chain:       c.chain.Name,
+						Value:       amount,
+						BlockNumber: uint64(height),
+						TxHash:      txHash,
+					},
+					srcValidator: srcValidator,
+				}
 			}
 
-			if delegatorExists && evt.Type == "delegate" {
+			if delegatorExists {
 				stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+				stakingEvt = nil
 			}
 		} else {
-			// should be message+staking module+spender (delegator address)?
-			if stakingEvt == nil {
-				return fmt.Errorf("stakingEvt null, event sequencing (programming) issue")
-			}
-			evtIndex, ok := evtsIndexMap[int64(i)]
-			if !ok {
-				log.Debugf("no event index found for %d", i)
-			} else {
-				stakingEvt.EventIndex = evtIndex
-			}
-			if stakingEvt.Delegator == "" {
-				stakingEvt.Delegator = m["sender"]
-				stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
-			}
-			if stakingEvt.EventType == "redelegate" {
-				stakingEvents[0].EventType = "delegate"
-
-				unbondEvt := types.CosmosStakingEvent{
-					EventType:   "unbond",
-					EventIndex:  0, // using zero here for extra row to maintain uniqueness
-					Delegator:   stakingEvt.Delegator,
-					Validator:   stakingEvt.srcValidator,
-					Chain:       c.chain.Name,
-					Value:       -stakingEvt.Value,
-					BlockNumber: uint64(height),
-					TxHash:      txHash,
+			if stakingEvt == nil { // message event first
+				stakingEvt = &stakingEventWrapper{
+					CosmosStakingEvent: types.CosmosStakingEvent{
+						Delegator:   m["sender"],
+						Chain:       c.chain.Name,
+						BlockNumber: uint64(height),
+						TxHash:      txHash,
+					},
 				}
-				stakingEvents = append(stakingEvents, &unbondEvt)
+			} else {
+				if stakingEvt.Delegator == "" {
+					stakingEvt.Delegator = m["sender"]
+					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
+				}
+				if stakingEvt.EventType == "redelegate" {
+					log.Printf("LENGTH: %d", len(stakingEvents))
+					stakingEvents[0].EventType = "delegate"
+
+					unbondEvt := types.CosmosStakingEvent{
+						EventType:   "unbond",
+						EventIndex:  0, // using zero here for extra row to maintain uniqueness
+						Delegator:   stakingEvt.Delegator,
+						Validator:   stakingEvt.srcValidator,
+						Chain:       c.chain.Name,
+						Value:       -stakingEvt.Value,
+						BlockNumber: uint64(height),
+						TxHash:      txHash,
+					}
+					stakingEvents = append(stakingEvents, &unbondEvt)
+				}
+				stakingEvt = nil
 			}
-			stakingEvt = nil
 		}
 	}
-	log.Debugf("stakingEvt %v", stakingEvt)
+	// log.Infof("stakingEvt %v", stakingEvt)
 	log.Infof("inserting %d staking events", len(stakingEvents))
 	if len(stakingEvents) == 0 {
 		return errors.New("no staking events to insert")
 	}
-	totalAmount += len(stakingEvents)
 	log.Infof("totalAmount %d", totalAmount)
 	return c.db.InsertStakingEvents(stakingEvents)
 }
@@ -431,7 +456,9 @@ func attributesToMap(attributes []EventAttribute) map[string]string {
 	}
 	return m
 }
+
 var totalAmount int
+
 func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
 	var (
@@ -449,7 +476,7 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 		baseURL := c.rpc
 		url := fmt.Sprintf("%s/tx_search?query=%s", baseURL, query)
 
-		log.Infof("Requesting %s", url)
+		log.Debugf("Requesting %s", url)
 
 		resp, err := http.Get(url)
 		if err != nil {
@@ -480,7 +507,6 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 			txSearchErr = errors.Wrapf(err, "error unmarshalling response")
 			break
 		}
-
 
 		totalCount, err := strconv.Atoi(searchResults.Result.TotalCount)
 		if err != nil {
