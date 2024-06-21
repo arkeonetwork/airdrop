@@ -124,7 +124,7 @@ func NewCosmosIndexer(params CosmosIndexerParams) (*CosmosIndexer, error) {
 }
 
 func (c *CosmosIndexer) IndexDelegationsFromStateExport(dataDir, chain string, height int64) error {
-	stateExportFile := fmt.Sprintf("%s/state-export_%d.json", dataDir, height)
+	stateExportFile := fmt.Sprintf("%s/%d.json", dataDir, height)
 	start := time.Now()
 	raw, err := os.ReadFile(stateExportFile)
 	if err != nil {
@@ -185,61 +185,7 @@ func parseShares(s string, decimals uint8) (float64, error) {
 
 	return utils.FromBaseUnits(ishares, decimals), nil
 }
-
-// reads a collection of pageN.json files from the dataDir and inserts them into the db
-func (c *CosmosIndexer) IndexStartingDelegations(dataDir string) error {
-	dir, err := os.ReadDir(dataDir)
-	if err != nil {
-		return errors.Wrapf(err, "error reading dir %s", dataDir)
-	}
-	for _, f := range dir {
-		if f.IsDir() {
-			log.Infof("%s is a directory, skipping", f.Name())
-		}
-		if !strings.HasSuffix(f.Name(), ".json") {
-			log.Infof("%s is not a json file, skipping", f.Name())
-			continue
-		}
-		if !strings.HasPrefix(f.Name(), "page") {
-			log.Infof("%s is not a page file, skipping", f.Name())
-			continue
-		}
-
-		log.Infof("reading file %s", f.Name())
-		raw, err := os.ReadFile(fmt.Sprintf("%s/%s", dataDir, f.Name()))
-		if err != nil {
-			return errors.Wrapf(err, "error reading file %s", f.Name())
-		}
-
-		page := DelegationPage{}
-		if err = json.Unmarshal(raw, &page); err != nil {
-			return errors.Wrapf(err, "error unmarshalling file %s", f.Name())
-		}
-		log.Debug(page)
-
-		events := make([]*types.CosmosStakingEvent, 0, len(page.DelegationResponses))
-
-		for _, d := range page.DelegationResponses {
-			value := utils.FromBaseUnits(d.Balance.Amount, c.chain.Decimals)
-			event := &types.CosmosStakingEvent{
-				Chain:       c.chain.Name,
-				EventType:   "initial",
-				Delegator:   d.Delegation.DelegatorAddress,
-				Validator:   d.Delegation.ValidatorAddress,
-				Value:       value,
-				BlockNumber: c.chain.SnapshotStartBlock - 1,
-				TxHash:      "00000000000000000000000000000000",
-				EventIndex:  0,
-			}
-			events = append(events, event)
-		}
-		if err = c.db.InsertStakingEvents(events); err != nil {
-			return errors.Wrapf(err, "error inserting staking events for page %s", f.Name())
-		}
-	}
-
-	return nil
-}
+	
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
 	startHeight := int64(c.chain.SnapshotStartBlock)
