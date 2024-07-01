@@ -15,8 +15,6 @@ import (
 )
 
 func (app *IndexerApp) IndexStakingRewardsEvents(contractName string) error {
-	log.Info("try")
-
 	// get all staking contracts
 	stakingContracts, err := app.db.FindStakingContractsByName(contractName)
 	if err != nil {
