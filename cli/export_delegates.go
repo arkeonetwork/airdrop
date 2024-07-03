@@ -20,6 +20,10 @@ var (
 	}
 )
 
+func init() {
+	exportDelegatesCmd.Flags().StringP("output", "f", "", "csv output file, default /tmp/airdrop_{chain}.csv")
+}
+
 // export block weighted delegation averages for given cosmos chain and validator
 func runExportDelegatesAvg(cmd *cobra.Command, args []string) {
 	log.Infof("starting delegate export process for %s", args[0])
