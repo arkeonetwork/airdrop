@@ -95,6 +95,7 @@ type EventAttribute struct {
 type Event struct {
 	Type       string           `json:"type"`
 	Attributes []EventAttribute `json:"attributes"`
+	AuthzIndex int64            `json:"authz_msg_index"`
 }
 
 type TxResult struct {
@@ -184,7 +185,6 @@ func parseShares(s string, decimals uint8) (float64, error) {
 
 	return utils.FromBaseUnits(ishares, decimals), nil
 }
-	
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
 	startHeight := int64(0) //int64(c.chain.SnapshotStartBlock)
@@ -207,6 +207,19 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 	}
 	return nil
 }
+
+// func shouldStoreLPTx(txResults *TxResult) bool {
+// 	for _, evt := range txResults.Events {
+// 		switch evt.Type {
+// 		case "withdraw_rewards":
+// 			return true
+// 		case "create_position":
+// 			return true
+// 		default:
+// 		}
+// 	}
+// 	return false
+// }
 
 func shouldStoreTx(txResults *TxResult) bool {
 	for _, evt := range txResults.Events {
@@ -256,19 +269,15 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 		}
 	}
-	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced)/2)
+	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced))
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
 
 	for i, evt := range evtsSequenced {
 		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
 		m := attributesToMap(evt.Attributes)
+		// log.Infof("Attributes: %v", m)
 		if evt.Type != "message" {
-			if evt.Type == "redelegate" {
-				totalAmount += 2
-			} else {
-				totalAmount += 1
-			}
 			// log.Printf("StakingEvt %v", stakingEvt)
 			// staking event itself: delegate,unbond,redelegate
 			_, amount, err := parseAmount(m["amount"], c.chain.Decimals)
@@ -326,6 +335,23 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					stakingEvents = append(stakingEvents, &unbondEvt)
 				}
 			} else { // staking event came first
+				if delegator == "" { // Authz but no delegator on event (will be last coin spent event)
+					log.Printf("Evt %v", evt)
+					for _, event := range txResult.Events {
+						attr := attributesToMap(event.Attributes)
+						log.Debugf("Event %v", event)
+						authzIndex := attr["authz_msg_index"]
+						if event.Type == "coin_spent" && authzIndex == m["authz_msg_index"] {
+							delegator = attr["spender"]
+							delegatorExists = true
+						}
+					}
+					if !delegatorExists {
+						log.Errorf("Failed to parse delegation from event %v", evt)
+						return errors.Wrapf(err, "Failed to parse delegation from event")
+					}
+				}
+				log.Printf("staking event first %s", delegator)
 				stakingEvt = &stakingEventWrapper{
 					CosmosStakingEvent: types.CosmosStakingEvent{
 						EventType:   evt.Type,
@@ -347,6 +373,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 		} else {
 			if stakingEvt == nil { // message event first
+				log.Printf("message event first")
 				stakingEvt = &stakingEventWrapper{
 					CosmosStakingEvent: types.CosmosStakingEvent{
 						Delegator:   m["sender"],
@@ -356,6 +383,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					},
 				}
 			} else {
+				log.Printf("message event second or non exist")
 				if stakingEvt.Delegator == "" {
 					stakingEvt.Delegator = m["sender"]
 					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
@@ -385,7 +413,6 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 	if len(stakingEvents) == 0 {
 		return errors.New("no staking events to insert")
 	}
-	log.Debugf("totalAmount %d", totalAmount)
 	return c.db.InsertStakingEvents(stakingEvents)
 }
 
@@ -401,8 +428,6 @@ func attributesToMap(attributes []EventAttribute) map[string]string {
 	}
 	return m
 }
-
-var totalAmount int
 
 func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	log := log.WithField("height", fmt.Sprintf("%d", height))
@@ -479,13 +504,19 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	}
 
 	for _, t := range txSearchResults {
-		if !shouldStoreTx(&t.TxResult) {
-			continue
+		if shouldStoreTx(&t.TxResult) {
+			if err := c.handleStakingTx(height, t.Hash, &t.TxResult); err != nil {
+				log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
+				return errors.Wrapf(err, "error handling staking tx %s", hashTx(t.Tx))
+			}
 		}
-		if err := c.handleStakingTx(height, t.Hash, &t.TxResult); err != nil {
-			log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
-			return errors.Wrapf(err, "error handling staking tx %s", hashTx(t.Tx))
-		}
+		// Handle LP txs for OSMO
+		// if c.chain.Name == "OSMO" && shouldStoreLPTx(&t.TxResult) {
+		// 	// if err := c.handleOsmoLPTx(height, t.Hash, &t.TxResult); err != nil {
+		// 	// 	log.Errorf("error handling osmo lp tx %s: %+v", hashTx(t.Tx), err)
+		// 	// 	return errors.Wrapf(err, "error handling osmo lp tx %s", hashTx(t.Tx))
+		// 	// }
+		// }
 	}
 	return nil
 }
