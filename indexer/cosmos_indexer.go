@@ -95,7 +95,6 @@ type EventAttribute struct {
 type Event struct {
 	Type       string           `json:"type"`
 	Attributes []EventAttribute `json:"attributes"`
-	AuthzIndex int64            `json:"authz_msg_index"`
 }
 
 type TxResult struct {
@@ -187,7 +186,7 @@ func parseShares(s string, decimals uint8) (float64, error) {
 }
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
-	startHeight := int64(0) //int64(c.chain.SnapshotStartBlock)
+	startHeight := int64(12939961) //int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
 
 	latest, err := c.db.FindLatestIndexedCosmosStakingBlock(c.chain.Name)
@@ -269,10 +268,11 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 		}
 	}
+	log.Printf("evtsSeq %v", evtsSequenced)
 	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced))
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
-
+	log.Printf("evtsSequenced %d", len(evtsSequenced))
 	for i, evt := range evtsSequenced {
 		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
 		m := attributesToMap(evt.Attributes)
@@ -312,6 +312,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 
 			if stakingEvt != nil { // message came first
+				log.Printf("staking event second %s", delegator)
 				stakingEvt.srcValidator = srcValidator
 				stakingEvt.CosmosStakingEvent.EventType = evt.Type
 				stakingEvt.CosmosStakingEvent.EventIndex = evtIndex
@@ -334,23 +335,10 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					}
 					stakingEvents = append(stakingEvents, &unbondEvt)
 				}
-			} else { // staking event came first
-				if delegator == "" { // Authz but no delegator on event (will be last coin spent event)
-					log.Printf("Evt %v", evt)
-					for _, event := range txResult.Events {
-						attr := attributesToMap(event.Attributes)
-						log.Debugf("Event %v", event)
-						authzIndex := attr["authz_msg_index"]
-						if event.Type == "coin_spent" && authzIndex == m["authz_msg_index"] {
-							delegator = attr["spender"]
-							delegatorExists = true
-						}
-					}
-					if !delegatorExists {
-						log.Errorf("Failed to parse delegation from event %v", evt)
-						return errors.Wrapf(err, "Failed to parse delegation from event")
-					}
+				if !delegatorExists {
+					stakingEvt = nil
 				}
+			} else { // staking event came first
 				log.Printf("staking event first %s", delegator)
 				stakingEvt = &stakingEventWrapper{
 					CosmosStakingEvent: types.CosmosStakingEvent{
@@ -365,6 +353,19 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					},
 					srcValidator: srcValidator,
 				}
+				delegatorInNextEvent := evtsSequenced[i+1].Type == "message"
+				if stakingEvt.Delegator == "" && !delegatorInNextEvent { // Authz but no delegator on event (will be last coin spent event)
+					log.Debugf("Evt %v", evt)
+					for _, event := range txResult.Events {
+						attr := attributesToMap(event.Attributes)
+						log.Infof("Event %v", event)
+						authzIndex := attr["authz_msg_index"]
+						if event.Type == "coin_spent" && authzIndex == m["authz_msg_index"] {
+							stakingEvt.Delegator = attr["spender"]
+							delegatorExists = true
+						}
+					}
+				}
 			}
 
 			if delegatorExists {
@@ -372,6 +373,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 				stakingEvt = nil
 			}
 		} else {
+			log.Printf("stakingEvt %v", stakingEvt)
 			if stakingEvt == nil { // message event first
 				log.Printf("message event first")
 				stakingEvt = &stakingEventWrapper{
@@ -383,7 +385,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					},
 				}
 			} else {
-				log.Printf("message event second or non exist")
+				log.Printf("message event second")
 				if stakingEvt.Delegator == "" {
 					stakingEvt.Delegator = m["sender"]
 					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
@@ -409,7 +411,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 		}
 	}
 	// log.Infof("stakingEvt %v", stakingEvt)
-	log.Debugf("inserting %d staking events", len(stakingEvents))
+	log.Infof("inserting %d staking events", len(stakingEvents))
 	if len(stakingEvents) == 0 {
 		return errors.New("no staking events to insert")
 	}
