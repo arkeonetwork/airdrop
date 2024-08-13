@@ -25,7 +25,10 @@ func (d *AirdropDB) InsertOsmoLP(event []*types.OsmoLP) error {
 			sqlInsertOsmoLP,
 			evt.BlockNumber,
 			evt.Account,
-			evt.QtyOsmo,
+			evt.LpAmount,
+			evt.PoolId,
+			evt.TxHash,
+			evt.Type,
 		)
 	}
 	results := conn.SendBatch(context.Background(), batch)

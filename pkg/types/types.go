@@ -74,7 +74,10 @@ type ThorLPBalanceEvent struct {
 }
 
 type OsmoLP struct {
-	BlockNumber int64   `db:"block_number"`
-	Account     string  `db:"account"`
-	QtyOsmo     float64 `db:"qty_osmo"`
+	BlockNumber int64  `db:"block_number"`
+	Account     string `db:"account"`
+	LpAmount    string `db:"lp_amount"`
+	PoolId      int64  `db:"pool_id"`
+	Type        string `db:"lp_type"`
+	TxHash      string `db:"tx_hash"`
 }

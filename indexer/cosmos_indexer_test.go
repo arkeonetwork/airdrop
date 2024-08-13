@@ -60,21 +60,3 @@ func TestIndexThorLP(t *testing.T) {
 
 }
 
-func TestIndexOsmoLP(t *testing.T) {
-	c := arkutils.ReadDBConfig(utils.GetEnvPath())
-	if c == nil {
-		fmt.Print("error: no config loaded")
-		return
-	}
-
-	height := int64(7455619)
-	chain := "THOR"
-	params := CosmosIndexerParams{Chain: chain, DB: *c}
-	indxr, err := NewCosmosIndexer(params)
-	if !assert.Nil(t, err) {
-		t.FailNow()
-	}
-	assert.NotNil(t, indxr)
-	err = indxr.indexOsmoLP(height, "bonded_8216032.json")
-	assert.Nil(t, err)
-}

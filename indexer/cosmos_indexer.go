@@ -1,9 +1,6 @@
 package indexer
 
 import (
-	// "context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
@@ -207,18 +204,16 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 	return nil
 }
 
-// func shouldStoreLPTx(txResults *TxResult) bool {
-// 	for _, evt := range txResults.Events {
-// 		switch evt.Type {
-// 		case "withdraw_rewards":
-// 			return true
-// 		case "create_position":
-// 			return true
-// 		default:
-// 		}
-// 	}
-// 	return false
-// }
+func shouldStoreLPTx(txResults *TxResult) bool {
+	for _, evt := range txResults.Events {
+		switch evt.Type {
+		case "withdraw_position", "create_position":
+			return true
+		default:
+		}
+	}
+	return false
+}
 
 func shouldStoreTx(txResults *TxResult) bool {
 	for _, evt := range txResults.Events {
@@ -233,6 +228,72 @@ func shouldStoreTx(txResults *TxResult) bool {
 		}
 	}
 	return false
+}
+
+func getAttribute(attributes []EventAttribute, attributeName string) string {
+	for _, attr := range attributes {
+		if attr.Key == attributeName {
+			return attr.Value
+		}
+	}
+	return ""
+}
+
+func (c *CosmosIndexer) handleOsmoLPTx(height int64, txHash string, txResult *TxResult) error {
+	log := log.WithField("height", fmt.Sprintf("%d", height))
+	log.Debugf("handling osmo lp tx %s", txHash)
+	liquidityEvents := make([]*types.OsmoLP, 0, len(txResult.Events))
+
+	for _, evt := range txResult.Events {
+		switch evt.Type {
+		case "withdraw_position", "create_position":
+			poolIdStr := getAttribute(evt.Attributes, "pool_id")
+			if poolIdStr != "" {
+				log.Debugf("Pool ID:", poolIdStr)
+			} else {
+				log.Errorf("Pool ID field not found")
+			}
+			poolId, err := strconv.ParseInt(poolIdStr, 10, 64)
+			if err != nil {
+				log.Errorf("Error converting string to int64: %v", err)
+				return errors.Wrapf(err, "Error converting pool id string")
+
+			}
+			sender := getAttribute(evt.Attributes, "sender")
+			if sender != "" {
+				log.Debugf("Sender:", sender)
+			} else {
+				log.Errorf("Sender field not found")
+			}
+
+			liquidityStr := getAttribute(evt.Attributes, "liquidity")
+			if liquidityStr != "" {
+				log.Debugf("Liquidity:", liquidityStr)
+			} else {
+				log.Errorf("Liquidity field not found")
+				return errors.Wrapf(err, "Liquidity field not found")
+			}
+			liquidity, err := parseBigFloat(liquidityStr)
+			if err != nil {
+				log.Errorf("error parsing amount %s: %+v", liquidityStr, err)
+				return errors.Wrapf(err, "error parsing amount %s", liquidityStr)
+			}
+			withdrawEvt := types.OsmoLP{
+				Type:        strings.Replace(evt.Type, "_position", "", 1),
+				LpAmount:    liquidity.Text('f', -1),
+				Account:     sender,
+				BlockNumber: int64(height),
+				TxHash:      txHash,
+				PoolId:      poolId,
+			}
+			liquidityEvents = append(liquidityEvents, &withdrawEvt)
+		}
+	}
+	log.Infof("inserting %d liquidity events", len(liquidityEvents))
+	if len(liquidityEvents) == 0 {
+		return errors.New("no liquidity events to insert")
+	}
+	return c.db.InsertOsmoLP(liquidityEvents)
 }
 
 func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *TxResult) error {
@@ -268,17 +329,15 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 		}
 	}
-	log.Printf("evtsSeq %v", evtsSequenced)
+	log.Debugf("evtsSeq %v", evtsSequenced)
 	stakingEvents := make([]*types.CosmosStakingEvent, 0, len(evtsSequenced))
 	evtsSequenced = evtsSequenced[:evtsSeq]
 	var stakingEvt *stakingEventWrapper
-	log.Printf("evtsSequenced %d", len(evtsSequenced))
+	log.Debugf("evtsSequenced %d", len(evtsSequenced))
 	for i, evt := range evtsSequenced {
 		log.Debugf("EVT: %s, Index: %d", evt.Type, i)
 		m := attributesToMap(evt.Attributes)
-		// log.Infof("Attributes: %v", m)
 		if evt.Type != "message" {
-			// log.Printf("StakingEvt %v", stakingEvt)
 			// staking event itself: delegate,unbond,redelegate
 			_, amount, err := parseAmount(m["amount"], c.chain.Decimals)
 			if err != nil {
@@ -312,7 +371,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 			}
 
 			if stakingEvt != nil { // message came first
-				log.Printf("staking event second %s", delegator)
+				log.Debugf("staking event second %s", delegator)
 				stakingEvt.srcValidator = srcValidator
 				stakingEvt.CosmosStakingEvent.EventType = evt.Type
 				stakingEvt.CosmosStakingEvent.EventIndex = evtIndex
@@ -339,7 +398,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					stakingEvt = nil
 				}
 			} else { // staking event came first
-				log.Printf("staking event first %s", delegator)
+				log.Debugf("staking event first %s", delegator)
 				stakingEvt = &stakingEventWrapper{
 					CosmosStakingEvent: types.CosmosStakingEvent{
 						EventType:   evt.Type,
@@ -353,12 +412,20 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					},
 					srcValidator: srcValidator,
 				}
-				delegatorInNextEvent := evtsSequenced[i+1].Type == "message"
+
+				var delegatorInNextEvent bool
+				if i+1 < len(evtsSequenced) {
+					delegatorInNextEvent = evtsSequenced[i+1].Type == "message"
+				} else {
+					// Set a default value or handle the out-of-bounds case
+					delegatorInNextEvent = false
+				}
+
 				if stakingEvt.Delegator == "" && !delegatorInNextEvent { // Authz but no delegator on event (will be last coin spent event)
 					log.Debugf("Evt %v", evt)
 					for _, event := range txResult.Events {
 						attr := attributesToMap(event.Attributes)
-						log.Infof("Event %v", event)
+						log.Debugf("Event %v", event)
 						authzIndex := attr["authz_msg_index"]
 						if event.Type == "coin_spent" && authzIndex == m["authz_msg_index"] {
 							stakingEvt.Delegator = attr["spender"]
@@ -373,9 +440,9 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 				stakingEvt = nil
 			}
 		} else {
-			log.Printf("stakingEvt %v", stakingEvt)
+			log.Debugf("stakingEvt %v", stakingEvt)
 			if stakingEvt == nil { // message event first
-				log.Printf("message event first")
+				log.Debugf("message event first")
 				stakingEvt = &stakingEventWrapper{
 					CosmosStakingEvent: types.CosmosStakingEvent{
 						Delegator:   m["sender"],
@@ -385,7 +452,7 @@ func (c *CosmosIndexer) handleStakingTx(height int64, txHash string, txResult *T
 					},
 				}
 			} else {
-				log.Printf("message event second")
+				log.Debugf("message event second")
 				if stakingEvt.Delegator == "" {
 					stakingEvt.Delegator = m["sender"]
 					stakingEvents = append(stakingEvents, &stakingEvt.CosmosStakingEvent)
@@ -508,25 +575,19 @@ func (c *CosmosIndexer) indexCosmosDelegations(height int64) error {
 	for _, t := range txSearchResults {
 		if shouldStoreTx(&t.TxResult) {
 			if err := c.handleStakingTx(height, t.Hash, &t.TxResult); err != nil {
-				log.Errorf("error handling staking tx %s: %+v", hashTx(t.Tx), err)
-				return errors.Wrapf(err, "error handling staking tx %s", hashTx(t.Tx))
+				log.Errorf("error handling staking tx %s: %+v", t.Hash, err)
+				return errors.Wrapf(err, "error handling staking tx %s", t.Hash)
 			}
 		}
 		// Handle LP txs for OSMO
-		// if c.chain.Name == "OSMO" && shouldStoreLPTx(&t.TxResult) {
-		// 	// if err := c.handleOsmoLPTx(height, t.Hash, &t.TxResult); err != nil {
-		// 	// 	log.Errorf("error handling osmo lp tx %s: %+v", hashTx(t.Tx), err)
-		// 	// 	return errors.Wrapf(err, "error handling osmo lp tx %s", hashTx(t.Tx))
-		// 	// }
-		// }
+		if c.chain.Name == "OSMO" && shouldStoreLPTx(&t.TxResult) {
+			if err := c.handleOsmoLPTx(height, t.Hash, &t.TxResult); err != nil {
+				log.Errorf("error handling osmo lp tx %s: %+v", t.Hash, err)
+				return errors.Wrapf(err, "error handling osmo lp tx %s", t.Hash)
+			}
+		}
 	}
 	return nil
-}
-
-func hashTx(tx string) string {
-	data := []byte(tx)
-	h := sha256.Sum256(data)
-	return strings.ToUpper(hex.EncodeToString(h[:]))
 }
 
 func parseAmount(in string, decimals uint8) (asset string, amount float64, err error) {
@@ -551,4 +612,14 @@ func parseAmount(in string, decimals uint8) (asset string, amount float64, err e
 
 	amount = utils.BigIntToFloat(iamt, uint8(decimals))
 	return
+}
+
+func parseBigFloat(numberStr string) (*big.Float, error) {
+	// Create a new big.Float and set its value from the string
+	f := new(big.Float)
+	_, _, err := f.Parse(numberStr, 10)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing string to big.Float: %w", err)
+	}
+	return f, nil
 }

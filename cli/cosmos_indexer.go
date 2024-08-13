@@ -22,12 +22,6 @@ var (
 		Run:   runDelegatorsIndexer,
 		Args:  cobra.ExactValidArgs(1),
 	}
-	indexOsmoLPCmd = &cobra.Command{
-		Use:   "osmo-lp [pool]",
-		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
-		Run:   runOsmoLPIndexer,
-		Args:  cobra.ExactValidArgs(2),
-	}
 	indexThorchainLPCmd = &cobra.Command{
 		Use:   "thor-lp [pool]",
 		Short: "gather cosmos-sdk chain liquidity provider data store in our db",
@@ -115,32 +109,3 @@ func runDelegationsFromStateExport(cmd *cobra.Command, args []string) {
 	}
 }
 
-func runOsmoLPIndexer(cmd *cobra.Command, args []string) {
-	flags := cmd.InheritedFlags()
-	envPath, _ := flags.GetString("env")
-	c := utils.ReadDBConfig(envPath)
-	if c == nil {
-		cmd.PrintErrf("no config for path %s", envPath)
-		return
-	}
-
-	sheight := args[0]
-	height, err := strconv.ParseInt(sheight, 10, 64)
-	if err != nil {
-		cmd.PrintErrf("error parsing height %s: %+v", sheight, err)
-		return
-	}
-
-	baseDataDir := args[1]
-	params := indexer.CosmosIndexerParams{Chain: "osmo", DB: *c}
-	indxr, err := indexer.NewCosmosIndexer(params)
-	if err != nil {
-		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
-		return
-	}
-	dataDir := fmt.Sprintf("%s/osmo", baseDataDir)
-
-	if err = indxr.IndexOsmoLP(height, dataDir); err != nil {
-		cmd.PrintErrf("error indexing LP: %+v", err)
-	}
-}
