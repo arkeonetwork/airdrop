@@ -166,6 +166,52 @@ func (c *CosmosIndexer) IndexDelegationsFromStateExport(stateExportFile, chain s
 	return nil
 }
 
+func (c *CosmosIndexer) IndexLiquidityFromStateExport(stateExportFile, chain string, height int64) error {
+	start := time.Now()
+	raw, err := os.ReadFile(stateExportFile)
+	if err != nil {
+		return errors.Wrapf(err, "error reading file %s", stateExportFile)
+	}
+	log.Infof("read file %s in %.3f seconds", stateExportFile, time.Since(start).Seconds())
+	start = time.Now()
+	imported := ImportedDelegation{}
+	if err = json.Unmarshal(raw, &imported); err != nil {
+		return errors.Wrapf(err, "error unmarshalling file %s", stateExportFile)
+	}
+	log.Infof("unmarshalled delegations %s in %.3f seconds", stateExportFile, time.Since(start).Seconds())
+
+	events := make([]*types.CosmosStakingEvent, 0, len(imported.AppState.Staking.Delegations))
+
+	start = time.Now()
+	for _, d := range imported.AppState.Staking.Delegations {
+		value, err := parseShares(d.Shares, c.chain.Decimals)
+		if err != nil {
+			return errors.Wrapf(err, "%s delegation to %s error parsing shares %s", d.DelegatorAddress, d.ValidatorAddress, d.Shares)
+		}
+		if value <= 0 {
+			log.Warnf("%s delegation to %s with value %f. string shares: %s", d.DelegatorAddress, d.ValidatorAddress, value, d.Shares)
+		}
+		event := &types.CosmosStakingEvent{
+			Chain:       c.chain.Name,
+			EventType:   "initial",
+			Delegator:   d.DelegatorAddress,
+			Validator:   d.ValidatorAddress,
+			Value:       value,
+			BlockNumber: uint64(height),
+			TxHash:      "00000000000000000000000000000000",
+			EventIndex:  0,
+		}
+		events = append(events, event)
+	}
+	log.Infof("created %d staking events in %.3f seconds", len(events), time.Since(start).Seconds())
+	start = time.Now()
+	if err = c.db.InsertStakingEvents(events); err != nil {
+		return errors.Wrapf(err, "error inserting staking events")
+	}
+	log.Infof("inserted %d staking events in %.3f seconds", len(events), time.Since(start).Seconds())
+	return nil
+}
+
 func parseShares(s string, decimals uint8) (float64, error) {
 	if !strings.Contains(s, ".") {
 		return -1, fmt.Errorf("shares %s does not contain a decimal", s)
