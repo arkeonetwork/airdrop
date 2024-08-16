@@ -59,11 +59,22 @@ type DelegationResponse struct {
 	} `json:"balance"`
 }
 
+type Liquidity struct {
+	Position struct {
+		Address   string `json:"address"`
+		Liquidity string `json:"liquidity"`
+		PoolId    string `json:"pool_id"`
+	} `json:"position"`
+}
+
 type ImportedDelegation struct {
 	AppState struct {
 		Staking struct {
 			Delegations []Delegation `json:"delegations"`
 		} `json:"staking"`
+		ConcentratedLiquidity struct {
+			PositionData []Liquidity `json:"position_data"`
+		} `json:"concentratedliquidity"`
 	} `json:"app_state"`
 }
 
@@ -179,36 +190,47 @@ func (c *CosmosIndexer) IndexLiquidityFromStateExport(stateExportFile, chain str
 		return errors.Wrapf(err, "error unmarshalling file %s", stateExportFile)
 	}
 	log.Infof("unmarshalled delegations %s in %.3f seconds", stateExportFile, time.Since(start).Seconds())
+	log.Infof("Number of entries in PositionData: %d", len(imported.AppState.ConcentratedLiquidity.PositionData))
 
-	events := make([]*types.CosmosStakingEvent, 0, len(imported.AppState.Staking.Delegations))
+	events := make([]*types.OsmoLP, 0, len(imported.AppState.ConcentratedLiquidity.PositionData))
 
 	start = time.Now()
-	for _, d := range imported.AppState.Staking.Delegations {
-		value, err := parseShares(d.Shares, c.chain.Decimals)
+	for _, d := range imported.AppState.ConcentratedLiquidity.PositionData {
+		log.Infof("processing liquidity for %s", d.Position.Address)
+		value, err := parseBigFloat(d.Position.Liquidity)
 		if err != nil {
-			return errors.Wrapf(err, "%s delegation to %s error parsing shares %s", d.DelegatorAddress, d.ValidatorAddress, d.Shares)
+			return errors.Wrapf(err, "%s liquidity to %s error parsing shares %s", d.Position.Address, d.Position.Address, d.Position.Liquidity)
 		}
-		if value <= 0 {
-			log.Warnf("%s delegation to %s with value %f. string shares: %s", d.DelegatorAddress, d.ValidatorAddress, value, d.Shares)
+		var eventType string
+
+		zero := new(big.Float).SetInt64(0)
+		cmp := value.Cmp(zero)
+		if cmp > 0 {
+			eventType = "create"
+		} else {
+			eventType = "withdraw"
 		}
-		event := &types.CosmosStakingEvent{
-			Chain:       c.chain.Name,
-			EventType:   "initial",
-			Delegator:   d.DelegatorAddress,
-			Validator:   d.ValidatorAddress,
-			Value:       value,
-			BlockNumber: uint64(height),
+		poolId, err := strconv.ParseInt(d.Position.PoolId, 10, 64)
+		if err != nil {
+			log.Errorf("Error converting string to int64: %v", err)
+			return errors.Wrapf(err, "Error converting pool id string")
+		}
+		event := &types.OsmoLP{
+			Type:        eventType,
+			LpAmount:    value.Text('f', -1),
+			BlockNumber: height,
+			Account:     d.Position.Address,
+			PoolId:      poolId,
 			TxHash:      "00000000000000000000000000000000",
-			EventIndex:  0,
 		}
 		events = append(events, event)
 	}
-	log.Infof("created %d staking events in %.3f seconds", len(events), time.Since(start).Seconds())
+	log.Infof("created %d liquidity events in %.3f seconds", len(events), time.Since(start).Seconds())
 	start = time.Now()
-	if err = c.db.InsertStakingEvents(events); err != nil {
-		return errors.Wrapf(err, "error inserting staking events")
+	if err = c.db.InsertOsmoLP(events); err != nil {
+		return errors.Wrapf(err, "error inserting liquidity events")
 	}
-	log.Infof("inserted %d staking events in %.3f seconds", len(events), time.Since(start).Seconds())
+	log.Infof("inserted %d liquidity events in %.3f seconds", len(events), time.Since(start).Seconds())
 	return nil
 }
 

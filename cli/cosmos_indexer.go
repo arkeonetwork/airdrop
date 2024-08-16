@@ -16,6 +16,12 @@ var (
 		Run:   runDelegationsFromStateExport,
 		Args:  cobra.ExactValidArgs(3),
 	}
+	liquidityFromStateExport = &cobra.Command{
+		Use:   "import-liquidity [data-directory] [chain] [height]",
+		Short: "import liquidity from a cosmos daemond export",
+		Run:   runLiquidityFromStateExport,
+		Args:  cobra.ExactValidArgs(3),
+	}
 	indexDelegatorsCmd = &cobra.Command{
 		Use:   "delegators [chain]",
 		Short: "gather cosmos-sdk chain data store in our db",
@@ -109,3 +115,32 @@ func runDelegationsFromStateExport(cmd *cobra.Command, args []string) {
 	}
 }
 
+
+func runLiquidityFromStateExport(cmd *cobra.Command, args []string) {
+	flags := cmd.InheritedFlags()
+	envPath, _ := flags.GetString("env")
+	c := utils.ReadDBConfig(envPath)
+	if c == nil {
+		cmd.PrintErrf("no config for path %s", envPath)
+		return
+	}
+
+	chain := args[1]
+	baseDataDir := args[0]
+	sheight := args[2]
+	height, err := strconv.ParseInt(sheight, 10, 64)
+	if err != nil {
+		cmd.PrintErrf("error parsing height %s: %+v", sheight, err)
+		return
+	}
+
+	params := indexer.CosmosIndexerParams{Chain: chain, DB: *c}
+	indxr, err := indexer.NewCosmosIndexer(params)
+	if err != nil {
+		cmd.PrintErrf("error creating cosmos indexer: %+v", err)
+		return
+	}
+	if err = indxr.IndexLiquidityFromStateExport(baseDataDir, chain, height); err != nil {
+		cmd.PrintErrf("error indexing Delegations from state export: %+v", err)
+	}
+}

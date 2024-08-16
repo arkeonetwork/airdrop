@@ -44,6 +44,7 @@ func init() {
 	indexCosmosCmd.AddCommand(indexDelegatorsCmd)
 	indexCosmosCmd.AddCommand(indexThorchainLPCmd)
 	indexCosmosCmd.AddCommand(delegationsFromStateExport)
+	indexCosmosCmd.AddCommand(liquidityFromStateExport)
 	rootCmd.AddCommand(indexCosmosCmd)
 	// >>>>>>> 845abdb (cosmos staking/lp)
 	rootCmd.AddCommand(exportCmd)
