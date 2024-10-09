@@ -284,7 +284,7 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 			}
 	
 			// If no error, move to the next height
-			log.Infof("Successfully indexed height %d", i)
+			log.Debugf("Successfully indexed height %d", i)
 			break
 		}
 	}
