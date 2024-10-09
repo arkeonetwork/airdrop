@@ -251,7 +251,7 @@ func parseShares(s string, decimals uint8) (float64, error) {
 }
 
 func (c *CosmosIndexer) IndexCosmosDelegators() error {
-	startHeight := int64(12939961) //int64(c.chain.SnapshotStartBlock)
+	startHeight := int64(c.chain.SnapshotStartBlock)
 	endHeight := int64(c.chain.SnapshotEndBlock)
 
 	latest, err := c.db.FindLatestIndexedCosmosStakingBlock(c.chain.Name)
