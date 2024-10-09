@@ -263,9 +263,28 @@ func (c *CosmosIndexer) IndexCosmosDelegators() error {
 		startHeight = latest - 1
 	}
 
+	// for i := startHeight; i <= endHeight; i++ {
+	// 	if err := c.indexCosmosDelegations(i); err != nil {
+	// 		log.Errorf("error indexing delegations at height %d: %+v", i, err)
+	// 		break
+	// 	}
+	// }
+
+	const retryInterval = 5
+
 	for i := startHeight; i <= endHeight; i++ {
-		if err := c.indexCosmosDelegations(i); err != nil {
-			log.Errorf("error indexing delegations at height %d: %+v", i, err)
+		for {
+			if err := c.indexCosmosDelegations(i); err != nil {
+				log.Errorf("error indexing delegations at height %d: %+v", i, err)
+	
+				// Log and wait for 5 seconds before retrying
+				log.Warnf("Retrying height %d in %d seconds...", i, retryInterval)
+				time.Sleep(time.Duration(retryInterval) * time.Second)
+				continue // Retry indefinitely until the call succeeds
+			}
+	
+			// If no error, move to the next height
+			log.Infof("Successfully indexed height %d", i)
 			break
 		}
 	}
