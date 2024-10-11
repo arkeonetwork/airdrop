@@ -50,6 +50,7 @@ func init() {
 	rootCmd.AddCommand(exportCmd)
 	rootCmd.AddCommand(exportFarmCmd)
 	rootCmd.AddCommand(exportDelegatesCmd)
+	rootCmd.AddCommand(exportOsmoLpCmd)
 	rootCmd.AddCommand(exportThorchainLPCmd)
 }
 
