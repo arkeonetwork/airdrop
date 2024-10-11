@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/ArkeoNetwork/airdrop/pkg/db"
-	"github.com/ArkeoNetwork/directory/pkg/logging"
+	"github.com/ArkeoNetwork/common/logging"
+	"github.com/ArkeoNetwork/common/utils"
 )
 
 type IndexerAppParams struct {
 	SnapshotStart uint64
 	SnapshotEnd   uint64
-	db.DBConfig
+	utils.DBConfig
 }
 
 type IndexerApp struct {
@@ -28,6 +29,7 @@ func NewIndexer(params IndexerAppParams) *IndexerApp {
 	return &IndexerApp{params: params, db: d}
 }
 
+// index transfers, staking rewards, hedgeys
 func (app *IndexerApp) Start() {
 	log.Info("starting indexing transfers")
 
@@ -38,9 +40,25 @@ func (app *IndexerApp) Start() {
 	log.Info("finished indexing transfers")
 	log.Info("starting indexing LP staking")
 
-	err = app.IndexStakingRewardsEvents()
+	err = app.IndexStakingRewardsEvents("stakingrewardsv5")
 	if err != nil {
-		panic(fmt.Sprintf("error indexing LP staking: %+v", err))
+		panic(fmt.Sprintf("error indexing LP staking v5: %+v", err))
+	}
+	err = app.IndexStakingRewardsEvents("stakingrewardsv6")
+	if err != nil {
+		panic(fmt.Sprintf("error indexing LP staking v6: %+v", err))
+	}
+	err = app.IndexStakingRewardsEvents("stakingrewardsv7")
+	if err != nil {
+		panic(fmt.Sprintf("error indexing LP staking v7: %+v", err))
+	}
+	err = app.IndexStakingRewardsEvents("stakingrewardsv8")
+	if err != nil {
+		panic(fmt.Sprintf("error indexing LP staking v8: %+v", err))
+	}
+	err = app.IndexStakingRewardsEvents("stakingrewardsv9")
+	if err != nil {
+		panic(fmt.Sprintf("error indexing LP staking v9: %+v", err))
 	}
 	log.Info("finished indexing LP staking")
 	log.Info("starting indexing hedgeys")
@@ -49,5 +67,4 @@ func (app *IndexerApp) Start() {
 	if err != nil {
 		panic(fmt.Sprintf("error indexing hedgeys: %+v", err))
 	}
-
 }
